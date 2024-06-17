@@ -10,7 +10,6 @@ import "./MapViewer.css";
 import MapEditor from "./MapEditor";
 import MapSettings from "./MapSettings";
 
-
 interface MapViewerProps {
     center: [number, number];
     zoom: number;
@@ -77,7 +76,6 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
         }
     };
 
-
     const colorize = (zoneType: string): PathOptions => {
         switch (zoneType) {
             case 'grass':
@@ -125,18 +123,23 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
     };
 
     return (
-        <Container>
+        <Container id={"map"}>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+                  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+                  crossOrigin=""/>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+                    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+                    crossOrigin=""></script>
             <Box marginTop={4} height="500px">
                 <Grid container spacing={2}>
                     <Grid item xs={8} style={{ height: "500px" }}>
-                        <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
+                        <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }} >
                             <TileLayer
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             />
                             <MapEditor geoJson={geoJson} setGeoJson={setGeoJson} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sideWalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef} activeLayer={activeLayer} />
                             <MapSettings mapRef={mapRef} layerControlRef={layerControlRef} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sidewalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef}/>
-
                         </MapContainer>
                         <div className="layer-buttons">
                             {activeLayer}

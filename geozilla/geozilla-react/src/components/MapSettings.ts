@@ -17,6 +17,7 @@ interface MapSettingsProps {
 const MapSettings: React.FC<MapSettingsProps> = ({ mapRef , layerControlRef, grassLayerRef, roadLayerRef, sidewalkLayerRef, buildingLayerRef, defaultLayerRef}) => {
     const map = useMap();
 
+
     useEffect(() => {
         if (!mapRef.current) {
             mapRef.current = map;
@@ -34,6 +35,8 @@ const MapSettings: React.FC<MapSettingsProps> = ({ mapRef , layerControlRef, gra
                     'Sidewalk': sidewalkLayerRef.current,
                     'Building': buildingLayerRef.current,
                     'Default': defaultLayerRef.current
+
+
                 }, { collapsed: false }).addTo(map);
 
                 map.addLayer(grassLayerRef.current);
