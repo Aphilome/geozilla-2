@@ -1,5 +1,5 @@
 #include "GeozillaCore.h"
-#include "GltfToPointCloudConverter.h"
+#include "Converter/GltfToPointCloudConverter.h"
 
 #include <Logger/ConsoleLogger.h>
 #include <Loader/GeoModelLoader.h>
