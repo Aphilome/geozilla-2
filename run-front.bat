@@ -1,3 +1,5 @@
+@echo off
+
 echo 'Run Frontend'
 cd geozilla/geozilla-react
 
