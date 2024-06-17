@@ -29,16 +29,6 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
     const [activeLayer, setActiveLayer] = useState<string>('default');
 
     useEffect(() => {
-        delete (L as any).Icon.Default.prototype._getIconUrl;
-
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
-            iconUrl: require('leaflet/dist/images/marker-icon.png').default,
-            shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
-        });
-    }, []);
-
-    useEffect(() => {
         if (!geoJson) return;
 
         grassLayerRef.current.clearLayers();

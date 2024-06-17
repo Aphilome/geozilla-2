@@ -16,8 +16,6 @@ interface MapSettingsProps {
 
 const MapSettings: React.FC<MapSettingsProps> = ({ mapRef , layerControlRef, grassLayerRef, roadLayerRef, sidewalkLayerRef, buildingLayerRef, defaultLayerRef}) => {
     const map = useMap();
-
-
     useEffect(() => {
         if (!mapRef.current) {
             mapRef.current = map;
@@ -26,6 +24,7 @@ const MapSettings: React.FC<MapSettingsProps> = ({ mapRef , layerControlRef, gra
                 position: 'topleft',
                 drawCircleMarker: false,
                 rotateMode: false,
+                drawText: false,
             });
 
             if (layerControlRef.current === null) {
@@ -46,7 +45,7 @@ const MapSettings: React.FC<MapSettingsProps> = ({ mapRef , layerControlRef, gra
                 map.addLayer(defaultLayerRef.current);
             }
         }
-    }, [map]);
+    }, [map, grassLayerRef, roadLayerRef, sidewalkLayerRef, buildingLayerRef, defaultLayerRef, layerControlRef, mapRef]);
 
     return null;
 }
