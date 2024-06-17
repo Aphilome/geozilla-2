@@ -136,7 +136,6 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
                             <MapSettings mapRef={mapRef} layerControlRef={layerControlRef} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sidewalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef}/>
                         </MapContainer>
                         <div className="layer-buttons">
-                            {activeLayer}
                             <Button variant={activeLayer === 'default' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('default')}>Default</Button>
                             <Button variant={activeLayer === 'grass' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('grass')}>Grass</Button>
                             <Button variant={activeLayer === 'road' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('road')}>Road</Button>
