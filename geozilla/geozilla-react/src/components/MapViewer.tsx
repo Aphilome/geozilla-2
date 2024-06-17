@@ -10,7 +10,6 @@ import "./MapViewer.css";
 import MapEditor from "./MapEditor";
 import MapSettings from "./MapSettings";
 
-
 interface MapViewerProps {
     center: [number, number];
     zoom: number;
@@ -28,16 +27,6 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
     const layerControlRef = useRef<L.Control.Layers | null>(null);
     const mapRef = useRef<L.Map | null>(null);
     const [activeLayer, setActiveLayer] = useState<string>('default');
-
-    useEffect(() => {
-        delete (L as any).Icon.Default.prototype._getIconUrl;
-
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
-            iconUrl: require('leaflet/dist/images/marker-icon.png').default,
-            shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
-        });
-    }, []);
 
     useEffect(() => {
         if (!geoJson) return;
@@ -76,7 +65,6 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
                 return defaultLayerRef.current;
         }
     };
-
 
     const colorize = (zoneType: string): PathOptions => {
         switch (zoneType) {
@@ -129,17 +117,15 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
             <Box marginTop={4} height="500px">
                 <Grid container spacing={2}>
                     <Grid item xs={8} style={{ height: "500px" }}>
-                        <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
+                        <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }} >
                             <TileLayer
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             />
                             <MapEditor geoJson={geoJson} setGeoJson={setGeoJson} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sideWalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef} activeLayer={activeLayer} />
                             <MapSettings mapRef={mapRef} layerControlRef={layerControlRef} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sidewalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef}/>
-
                         </MapContainer>
                         <div className="layer-buttons">
-                            {activeLayer}
                             <Button variant={activeLayer === 'default' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('default')}>Default</Button>
                             <Button variant={activeLayer === 'grass' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('grass')}>Grass</Button>
                             <Button variant={activeLayer === 'road' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('road')}>Road</Button>
