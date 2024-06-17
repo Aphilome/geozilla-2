@@ -20,11 +20,12 @@ jobs:
 
     steps:
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: './geozilla/geozilla-react/package-lock.json'
     - run: npm ci ./geozilla/geozilla-react
     - run: npm run build --if-present
     - run: npm test
