@@ -12,13 +12,11 @@ namespace geozilla_bl.Services.Generation.Concrete
         private const string ConfigName = "Release";
 #endif
 
-        private const string DllName = "geozilla-core.dll";
+        private const string DllName = $"../../../../../geozilla-core/bin/{ConfigName}/geozilla-core.dll";
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.ApplicationDirectory | DllImportSearchPath.System32)]
         [DllImport(DllName, EntryPoint = "?GenerateGeoJson@@YAPEBDPEBD@Z", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr GenerateGeoJson([MarshalAs(UnmanagedType.LPStr)] string path);
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.ApplicationDirectory | DllImportSearchPath.System32)]
         [DllImport(DllName, EntryPoint = "?FreeBuffer@@YAXPEBD@Z", CallingConvention = CallingConvention.Cdecl)]
         public static extern void FreeBuffer(IntPtr buffer);
     }

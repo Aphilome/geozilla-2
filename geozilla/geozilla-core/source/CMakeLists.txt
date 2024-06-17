@@ -5,12 +5,6 @@ set(SOURCE_LIST
     DllMain.cpp
     GeozillaCore.h
     GeozillaCore.cpp
-    GltfToPointCloudConverter.h
-    GltfToPointCloudConverter.cpp
-
-    # ZoneSplitter
-    ZoneSplitter/ZoneSplitter.h
-    ZoneSplitter/ZoneSplitter.cpp
 
     # Logger
     Logger/ILogger.h
@@ -25,6 +19,14 @@ set(SOURCE_LIST
     Loader/GeoModelLoader.cpp
     Loader/B3dmLoader.h
     Loader/B3dmLoader.cpp
+
+    # Converter
+    Converter/GltfToPointCloudConverter.h
+    Converter/GltfToPointCloudConverter.cpp
+
+    # ZoneSplitter
+    ZoneSplitter/ZoneSplitter.h
+    ZoneSplitter/ZoneSplitter.cpp
 )
 
 find_package(PCL REQUIRED)
@@ -41,7 +43,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 20
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../geozilla-api/bin/x64/$<CONFIG>/net8.0"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$<CONFIG>/"
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_LIST})
