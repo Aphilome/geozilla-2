@@ -33,11 +33,20 @@ find_package(PCL REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_LIST})
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PCL_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PCL_INCLUDE_DIRS}
+)
 
 link_directories(${PCL_LIBRARY_DIRS})
 
-target_link_libraries(${PROJECT_NAME} CesiumGltf Cesium3DTilesContent ${PCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        CesiumGltf
+        Cesium3DTilesContent
+        ${PCL_LIBRARIES}
+)
 
 add_definitions(${PCL_DEFINITIONS})
 
