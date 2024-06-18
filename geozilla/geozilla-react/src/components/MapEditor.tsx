@@ -1,7 +1,6 @@
-import React, {useEffect} from "react";
-import L from "leaflet";
+import React, {useEffect, useRef} from "react";
+import L, {Map} from "leaflet";
 import {FeatureCollection} from "geojson";
-import {useMap} from "react-leaflet";
 import {colorizeFigure, getFigureLayer} from "../utils/layerUtils";
 import Layers from "../types/Layers";
 
@@ -10,59 +9,41 @@ interface MapEditorProps {
     geoJsonView: FeatureCollection;
     setGeoJsonView: (geoJson: FeatureCollection) => void;
     activeLayer: string;
-    nextFeatureId: React.MutableRefObject<number>;
-   // setNextFeatureId: (nextFeatureId: number) => void;
+    nextFeatureIdRef: React.MutableRefObject<number>;
+    mapRef: React.MutableRefObject<Map | undefined>;
 }
 
-const MapEditor: React.FC<MapEditorProps> = ({ geoJsonView, setGeoJsonView, layersRef, activeLayer, nextFeatureId }) => {
+const MapEditor: React.FC<MapEditorProps> = ({ geoJsonView, setGeoJsonView, layersRef, activeLayer, nextFeatureIdRef, mapRef }) => {
     console.log('MapEditor component');
 
-    const map = useMap();
+    const activeLayerRef = useRef<string>(activeLayer);
 
     useEffect(() => {
-        console.log(`change MapEditor geoJsonView: ${geoJsonView.features.length}`);
-    }, [geoJsonView]);
-
-
-    useEffect(() => {
-        console.log(`change MapEditor nextFeatureId: ${nextFeatureId.current}`);
-    }, [nextFeatureId.current])
-
-    useEffect(() => {
-        console.log(`change MapEditor activeLayer: ${activeLayer}`);
-
+        activeLayerRef.current = activeLayer;
     }, [activeLayer])
 
 
     useEffect(() => {
-        if (!map) return;
-
+        const map = mapRef.current!;
 
         map.on('pm:create', (e) => {
             console.log('Created shape:', e);
             const figure = e.layer;
 
             if (figure instanceof L.Polygon) {
-                console.log('activeLayer = ' + activeLayer);
                 const polygon = figure as L.Polygon;
-                polygon.setStyle(colorizeFigure(activeLayer));
+                polygon.setStyle(colorizeFigure(activeLayerRef.current));
 
-                const targetLayer = getFigureLayer(activeLayer, layersRef);
+                const targetLayer = getFigureLayer(activeLayerRef.current, layersRef);
                 targetLayer.addLayer(polygon);
 
                 const geoJson = polygon.toGeoJSON();
-                geoJson.properties.zoneType = activeLayer;
-                geoJson.properties.featureId = nextFeatureId.current;
+                geoJson.properties.zoneType = activeLayerRef.current;
+                geoJson.properties.featureId = nextFeatureIdRef.current;
 
-                console.log('nextFeatureId = ' + nextFeatureId.current);
-                console.log('old geoJsonView.features = ' + geoJsonView.features.length);
-
-                nextFeatureId.current++;
-                //setNextFeatureId(nextFeatureId + 1);
+                nextFeatureIdRef.current++;
                 setGeoJsonView({ type: geoJsonView.type, features: [...geoJsonView.features, geoJson]})
             }
-
-
         });
 
         map.on('pm:edit', (e) => {
@@ -80,7 +61,7 @@ const MapEditor: React.FC<MapEditorProps> = ({ geoJsonView, setGeoJsonView, laye
             map.off('pm:edit');
             map.off('pm:remove');
         };
-    }, [map, setGeoJsonView, activeLayer, layersRef]);
+    }, []);
 
     return null;
 };

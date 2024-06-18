@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {MapContainer, TileLayer} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import L, {Map} from 'leaflet';
 import { Feature, FeatureCollection, GeoJsonProperties, Geometry} from 'geojson';
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
@@ -38,6 +38,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
     const [geoJsonView, setGeoJsonView] = useState<FeatureCollection>({type: "FeatureCollection", features: []})
     //const [nextFeatureId, setNextFeatureId] = useState(1);
     const nextFeatureId = useRef(1);
+    const mapRef = useRef<Map>();
 
     useEffect(() => {
         //if (!geoJson) return;
@@ -94,8 +95,9 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             />
-                            <MapEditor geoJsonView={geoJsonView} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureId={nextFeatureId} />
-                            <MapSettings layerControlRef={layerControlRef} layersRef={layersRef}/>
+                            <MapSettings layerControlRef={layerControlRef} layersRef={layersRef} mapRef={mapRef}/>
+                            {mapRef.current && <MapEditor geoJsonView={geoJsonView} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
+
                         </MapContainer>
                         <div className="layer-buttons">
                             <Button variant={activeLayer === 'default' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('default')}>Default</Button>
