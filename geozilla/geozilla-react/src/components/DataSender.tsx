@@ -42,7 +42,7 @@ const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
         <Container>
 
             <Box marginTop={4}>
-                <CoordinateInput selectedCoords={selectedCoords} setSelectedCoords={setSelectedCoords}/>
+                <CoordinateInput setSelectedCoords={setSelectedCoords}/>
             </Box>
 
             {error && <p style={{ color: 'red' }}>{error}</p>}

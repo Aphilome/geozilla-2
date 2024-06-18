@@ -2,86 +2,76 @@ import React, {useEffect} from "react";
 import L from "leaflet";
 import {FeatureCollection} from "geojson";
 import {useMap} from "react-leaflet";
-import * as geojson from "geojson";
+import {colorizeFigure, getFigureLayer} from "../utils/layerUtils";
+import Layers from "../types/Layers";
 
 interface MapEditorProps {
-    grassLayerRef: React.MutableRefObject<L.FeatureGroup<any>>;
-    roadLayerRef: React.MutableRefObject<L.FeatureGroup<any>>;
-    sideWalkLayerRef: React.MutableRefObject<L.FeatureGroup<any>>;
-    buildingLayerRef: React.MutableRefObject<L.FeatureGroup<any>>;
-    defaultLayerRef: React.MutableRefObject<L.FeatureGroup<any>>;
-    geoJson: FeatureCollection | null;
-    setGeoJson: (geoJson: FeatureCollection) => void;
+    layersRef: React.MutableRefObject<Layers>;
+    geoJsonView: FeatureCollection;
+    setGeoJsonView: (geoJson: FeatureCollection) => void;
     activeLayer: string;
+    nextFeatureId: React.MutableRefObject<number>;
+   // setNextFeatureId: (nextFeatureId: number) => void;
 }
 
-const MapEditor: React.FC<MapEditorProps> = ({ setGeoJson, grassLayerRef, roadLayerRef, sideWalkLayerRef, buildingLayerRef, defaultLayerRef, activeLayer }) => {
+const MapEditor: React.FC<MapEditorProps> = ({ geoJsonView, setGeoJsonView, layersRef, activeLayer, nextFeatureId }) => {
+    console.log('MapEditor component');
+
     const map = useMap();
+
+    useEffect(() => {
+        console.log(`change MapEditor geoJsonView: ${geoJsonView.features.length}`);
+    }, [geoJsonView]);
+
+
+    useEffect(() => {
+        console.log(`change MapEditor nextFeatureId: ${nextFeatureId.current}`);
+    }, [nextFeatureId.current])
+
+    useEffect(() => {
+        console.log(`change MapEditor activeLayer: ${activeLayer}`);
+
+    }, [activeLayer])
+
 
     useEffect(() => {
         if (!map) return;
 
-        map.pm.addControls({
-            position: 'topleft',
-            drawCircle: false,
-            drawMarker: false,
-            drawCircleMarker: false,
-        });
-
-        const updateGeoJson = () => {
-            //debugger;
-            const allLayers = map.pm.getGeomanLayers();
-
-            const updatedGeoJson: FeatureCollection = {
-                type: 'FeatureCollection',
-                features: allLayers.map((layer: L.Layer) => {
-                    if ('toGeoJSON' in layer) {
-                        return (layer as any).toGeoJSON() as geojson.Feature;
-                    }
-                    return null;
-                }).filter((feature): feature is geojson.Feature => feature !== null)
-            };
-            setGeoJson(updatedGeoJson);
-        };
-
-        const addLayerToActiveLayer = (layer: L.Layer) => {
-            console.log('addLayerToActiveLayer - ' + activeLayer);
-            switch (activeLayer) {
-                case 'grass':
-                    grassLayerRef.current.addLayer(layer);
-                    break;
-                case 'road':
-                    roadLayerRef.current.addLayer(layer);
-                    break;
-                case 'sidewalk':
-                    sideWalkLayerRef.current.addLayer(layer);
-                    break;
-                case 'building':
-                    buildingLayerRef.current.addLayer(layer);
-                    break;
-                default:
-                    defaultLayerRef.current.addLayer(layer);
-            }
-        };
 
         map.on('pm:create', (e) => {
-            const layer = e.layer;
-            const feature = (layer as any).toGeoJSON() as geojson.Feature;
-            feature.properties!.zoneType = activeLayer;
-
-            addLayerToActiveLayer(layer);
-
-            updateGeoJson();
             console.log('Created shape:', e);
+            const figure = e.layer;
+
+            if (figure instanceof L.Polygon) {
+                console.log('activeLayer = ' + activeLayer);
+                const polygon = figure as L.Polygon;
+                polygon.setStyle(colorizeFigure(activeLayer));
+
+                const targetLayer = getFigureLayer(activeLayer, layersRef);
+                targetLayer.addLayer(polygon);
+
+                const geoJson = polygon.toGeoJSON();
+                geoJson.properties.zoneType = activeLayer;
+                geoJson.properties.featureId = nextFeatureId.current;
+
+                console.log('nextFeatureId = ' + nextFeatureId.current);
+                console.log('old geoJsonView.features = ' + geoJsonView.features.length);
+
+                nextFeatureId.current++;
+                //setNextFeatureId(nextFeatureId + 1);
+                setGeoJsonView({ type: geoJsonView.type, features: [...geoJsonView.features, geoJson]})
+            }
+
+
         });
 
         map.on('pm:edit', (e) => {
-            updateGeoJson();
+            //updateGeoJson();
             console.log('Edited shape:', e);
         });
 
         map.on('pm:remove', (e) => {
-            updateGeoJson();
+            //updateGeoJson();
             console.log('Removed shape:', e);
         });
 
@@ -90,7 +80,7 @@ const MapEditor: React.FC<MapEditorProps> = ({ setGeoJson, grassLayerRef, roadLa
             map.off('pm:edit');
             map.off('pm:remove');
         };
-    }, [map, setGeoJson, activeLayer, defaultLayerRef, buildingLayerRef, grassLayerRef, roadLayerRef, sideWalkLayerRef]);
+    }, [map, setGeoJsonView, activeLayer, layersRef]);
 
     return null;
 };
