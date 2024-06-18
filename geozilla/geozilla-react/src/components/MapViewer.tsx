@@ -14,7 +14,6 @@ import FigureLayers from "../types/FigureLayers";
 import JsonView from "@uiw/react-json-view";
 import {onEditHandler, onRemoveHandler} from "../utils/MapEventHandlers";
 
-
 interface MapViewerProps {
     center: [number, number];
     zoom: number;
@@ -42,8 +41,6 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
     const mapRef = useRef<Map>();
 
     useEffect(() => {
-        console.log('geoJson set! ' + geoJson.features.length);
-
         const features = geoJson.features;
         let featuresView: Feature[] = [];
         features.forEach((feature) => {
