@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {MapContainer, TileLayer} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L, {Map} from 'leaflet';
+import L, {LeafletEvent, Map} from 'leaflet';
 import { Feature, FeatureCollection } from 'geojson';
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import {Box, Container, Grid, Button} from "@mui/material";
 import "./MapViewer.css";
-import MapEditor from "./MapEditor";
+import FigureCreator from "./FigureCreator";
 import MapSettings from "./MapSettings";
-import {colorizeFigure, getFigureLayer} from "../utils/layerUtils";
+import {colorizeFigure, getFigureLayer} from "../utils/LayerUtils";
 import FigureLayers from "../types/FigureLayers";
 import JsonView from "@uiw/react-json-view";
+import {onEditHandler, onRemoveHandler} from "../utils/MapEventHandlers";
 
 
 interface MapViewerProps {
@@ -55,6 +56,11 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
             targetLayer.addLayer(layer);
 
             feature.properties!.featureId = nextFeatureId.current++;
+            layer.on('pm:edit', (e: LeafletEvent) =>
+                onEditHandler(e, feature.properties!.featureId, geoJsonViewRef, setGeoJsonView));
+            layer.on('pm:remove', (e: LeafletEvent) =>
+                onRemoveHandler(e, feature.properties!.featureId, geoJsonViewRef, setGeoJsonView));
+
             featuresView.push(feature);
         });
         setGeoJsonView({ type: geoJsonView.type, features: featuresView});
@@ -75,7 +81,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             />
                             <MapSettings layerControlRef={layerControlRef} layersRef={layersRef} mapRef={mapRef}/>
-                            {mapRef.current && <MapEditor geoJsonViewRef={geoJsonViewRef} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
+                            {mapRef.current && <FigureCreator geoJsonViewRef={geoJsonViewRef} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
 
                         </MapContainer>
                         <div className="layer-buttons">

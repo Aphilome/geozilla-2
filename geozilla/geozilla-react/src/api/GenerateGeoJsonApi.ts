@@ -6,11 +6,13 @@ export class GenerateGeoJsonApi extends BaseApi {
     private static _generateGeoJsonUri = `${this.baseUri}/generate/geo-json`;
 
 
-    public static async sendData(coords: LatLngString, file: File) {
+    public static async sendData(coordsNW: LatLngString, coordsSE: LatLngString, file: File) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("latitude", coords.lat ?? "");
-        formData.append("longitude", coords.lng ?? "");
+        formData.append("latitudeNW", coordsNW.lat ?? "");
+        formData.append("longitudeNW", coordsNW.lng ?? "");
+        formData.append("latitudeSE", coordsSE.lat ?? "");
+        formData.append("longitudeSE", coordsSE.lng ?? "");
 
         return await axios.post(
             this._generateGeoJsonUri,

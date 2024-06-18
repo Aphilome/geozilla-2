@@ -1,45 +1,75 @@
 import React, {useState} from 'react';
-import {Box, Grid, TextField} from '@mui/material';
+import {Box, Container, TextField, Typography} from '@mui/material';
 import {LatLngString} from "../types/LatLng";
 
 interface CoordinateInputProps {
-    setSelectedCoords: React.Dispatch<React.SetStateAction<LatLngString | null>>;
+    setSelectedCoordsNW: (coords: LatLngString | null) => void;
+    setSelectedCoordsSE: (coords: LatLngString | null) => void;
 }
 
-const CoordinateInput : React.FC<CoordinateInputProps> = ({setSelectedCoords}) => {
-    const [lat, setLat] = useState('');
-    const [lng, setLng] = useState('');
+const CoordinateInput : React.FC<CoordinateInputProps> = ({setSelectedCoordsNW, setSelectedCoordsSE}) => {
+    const [latNW, setLatNW] = useState('');
+    const [lngNW, setLngNW] = useState('');
+    const [latSE, setLatSE] = useState('');
+    const [lngSE, setLngSE] = useState('');
 
-    const onChange = (prop: string, newValue: string) => {
+    const onChangeNW = (prop: keyof LatLngString, newValue: string) => {
         if (prop === 'lat') {
-            setLat(newValue);
-            setSelectedCoords({lat: newValue, lng: lng});
+            setLatNW(newValue);
+            setSelectedCoordsNW({lat: newValue, lng: lngNW});
         }
-        if (prop === 'lng') {
-            setLng(newValue);
-            setSelectedCoords({lat: lat, lng: newValue});
+        else if (prop === 'lng') {
+            setLngNW(newValue);
+            setSelectedCoordsNW({lat: latNW, lng: newValue});
+        }
+    }
+
+    const onChangeSE = (prop: keyof LatLngString, newValue: string) => {
+        if (prop === 'lat') {
+            setLatSE(newValue);
+            setSelectedCoordsSE({lat: newValue, lng: lngSE});
+        }
+        else if (prop === 'lng') {
+            setLngSE(newValue);
+            setSelectedCoordsSE({lat: latSE, lng: newValue});
         }
     }
     
     return (
-        <div>
-            <Grid container style={{justifyContent: 'center'}}>
-                <Grid item xs={6}>
-                    <TextField
-                        label="Широта"
-                        value={lat}
-                        onChange={(e) => onChange('lat', e.target.value)}
-                    />
-                </Grid>
-                <Grid item xs={6}>
-                    <TextField
-                        label="Долгота"
-                        value={lng}
-                        onChange={(e) => onChange('lng', e.target.value)}
-                    />
-                </Grid>
-            </Grid>
-        </div>
+        <Container>
+            <Box sx={{'& > :not(style)': {m: 1}}}>
+                <Typography variant="button" display="block" gutterBottom>
+                    Северо-западная точка
+                </Typography>
+                <TextField
+                    label="Широта"
+                    value={latNW}
+                    onChange={(e) => onChangeNW('lat', e.target.value)}
+                />
+                <TextField
+                    label="Долгота"
+                    value={lngNW}
+                    onChange={(e) => onChangeNW('lng', e.target.value)}
+                />
+            </Box>
+            <Box sx={{'& > :not(style)': {m: 1}}}>
+                <Typography variant="button" display="block" gutterBottom>
+                    Юго-восточная точка
+                </Typography>
+                <TextField
+                    margin={'dense'}
+                    label="Широта"
+                    value={latSE}
+                    onChange={(e) => onChangeSE('lat', e.target.value)}
+                />
+                <TextField
+                    margin={'dense'}
+                    label="Долгота"
+                    value={lngSE}
+                    onChange={(e) => onChangeSE('lng', e.target.value)}
+                />
+            </Box>
+        </Container>
     );
 };
 

@@ -22,6 +22,7 @@ const MapSettings: React.FC<MapSettingsProps> = ({ layerControlRef, layersRef, m
             drawCircleMarker: false,
             rotateMode: false,
             drawText: false,
+            drawMarker: false
         });
 
         if (layerControlRef.current === null) {
