@@ -20,9 +20,9 @@ const MapSettings: React.FC<MapSettingsProps> = ({ layerControlRef, layersRef, m
         mapRef.current.pm.addControls({
             position: 'topleft',
             drawCircleMarker: false,
-            rotateMode: false,
+            rotateMode: true,
             drawText: false,
-            drawMarker: false
+            drawMarker: false,
         });
 
         if (layerControlRef.current === null) {

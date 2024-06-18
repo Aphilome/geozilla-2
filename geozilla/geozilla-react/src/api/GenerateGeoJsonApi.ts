@@ -11,8 +11,10 @@ export class GenerateGeoJsonApi extends BaseApi {
         formData.append("file", file);
         formData.append("latitudeNW", coordsNW.lat ?? "");
         formData.append("longitudeNW", coordsNW.lng ?? "");
+        formData.append("heightNW", coordsNW.hgt ?? "");
         formData.append("latitudeSE", coordsSE.lat ?? "");
         formData.append("longitudeSE", coordsSE.lng ?? "");
+        formData.append("heightSE", coordsSE.hgt ?? "");
 
         return await axios.post(
             this._generateGeoJsonUri,

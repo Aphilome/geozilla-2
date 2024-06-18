@@ -25,8 +25,8 @@ const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
             .then(async response => {
                 if (response) {
                     setSnackbarOpen(true);
-                    setSelectedCoordsSE({lat: '', lng: ''});
-                    setSelectedCoordsNW({lat: '', lng: ''});
+                    setSelectedCoordsSE({lat: '', lng: '', hgt: ''});
+                    setSelectedCoordsNW({lat: '', lng: '', hgt: ''});
                     setUploadedFile(null);
                     setError('');
                     setGeoJson(JSON.parse(await response.data.text()));
