@@ -30,6 +30,7 @@ public static class GeneratoGeoJsonApi
         }
 
         var result = await service.Generate(Path.GetFullPath(path), request.Latitude, request.Longitude);
+        result = TestData.GeoJson;
         return result;
     }
 }
