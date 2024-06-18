@@ -1,6 +1,6 @@
-import L, {PathOptions} from "leaflet";
+import {PathOptions} from "leaflet";
 import React from "react";
-import Layers from "../types/Layers";
+import FigureLayers from "../types/FigureLayers";
 
 const colorizeFigure = (zoneType: string): PathOptions => {
     switch (zoneType) {
@@ -32,6 +32,13 @@ const colorizeFigure = (zoneType: string): PathOptions => {
                 fillColor: '#ff8c00',
                 fillOpacity: 0.5,
             };
+        case 'obstacles':
+            return {
+                color: '#863b5d',
+                weight: 2,
+                fillColor: '#863b5d',
+                fillOpacity: 0.5,
+            }
         default:
             return {
                 color: '#ee5858',
@@ -42,18 +49,20 @@ const colorizeFigure = (zoneType: string): PathOptions => {
     }
 };
 
-const getFigureLayer = (zoneType: string, layersRef: React.MutableRefObject<Layers>) => {
+const getFigureLayer = (zoneType: string, layersRef: React.MutableRefObject<FigureLayers>) => {
     switch (zoneType) {
         case 'grass':
-            return layersRef.current.grassLayerRef.current;
+            return layersRef.current.grassLayer;
         case 'road':
-            return layersRef.current.roadLayerRef.current;
+            return layersRef.current.roadLayer;
         case 'sidewalk':
-            return layersRef.current.sidewalkLayerRef.current;
+            return layersRef.current.sidewalkLayer;
         case 'building':
-            return layersRef.current.buildingLayerRef.current;
+            return layersRef.current.buildingLayer;
+        case 'obstacles':
+            return layersRef.current.obstaclesLayer;
         default:
-            return layersRef.current.defaultLayerRef.current;
+            return layersRef.current.defaultLayer;
     }
 };
 

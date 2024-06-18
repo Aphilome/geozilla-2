@@ -1,11 +1,11 @@
 import {useMap} from "react-leaflet";
 import React, {useEffect} from "react";
 import L, {Map} from "leaflet";
-import Layers from "../types/Layers";
+import FigureLayers from "../types/FigureLayers";
 
 interface MapSettingsProps {
     layerControlRef:  React.MutableRefObject<L.Control.Layers | null>;
-    layersRef:  React.MutableRefObject<Layers>;
+    layersRef:  React.MutableRefObject<FigureLayers>;
     mapRef: React.MutableRefObject<Map | undefined>;
 }
 
@@ -26,20 +26,20 @@ const MapSettings: React.FC<MapSettingsProps> = ({ layerControlRef, layersRef, m
 
         if (layerControlRef.current === null) {
             layerControlRef.current = L.control.layers({}, {
-                'Grass': layersRef.current.grassLayerRef.current,
-                'Road': layersRef.current.roadLayerRef.current,
-                'Sidewalk': layersRef.current.sidewalkLayerRef.current,
-                'Building': layersRef.current.buildingLayerRef.current,
-                'Default': layersRef.current.defaultLayerRef.current
-
-
+                'Grass': layersRef.current.grassLayer,
+                'Road': layersRef.current.roadLayer,
+                'Sidewalk': layersRef.current.sidewalkLayer,
+                'Building': layersRef.current.buildingLayer,
+                'Obstacles': layersRef.current.obstaclesLayer,
+                'Default': layersRef.current.defaultLayer
             }, { collapsed: false }).addTo(map);
 
-            mapRef.current.addLayer(layersRef.current.grassLayerRef.current);
-            mapRef.current.addLayer(layersRef.current.roadLayerRef.current);
-            mapRef.current.addLayer(layersRef.current.sidewalkLayerRef.current);
-            mapRef.current.addLayer(layersRef.current.buildingLayerRef.current);
-            mapRef.current.addLayer(layersRef.current.defaultLayerRef.current);
+            mapRef.current.addLayer(layersRef.current.grassLayer);
+            mapRef.current.addLayer(layersRef.current.roadLayer);
+            mapRef.current.addLayer(layersRef.current.sidewalkLayer);
+            mapRef.current.addLayer(layersRef.current.buildingLayer);
+            mapRef.current.addLayer(layersRef.current.obstaclesLayer);
+            mapRef.current.addLayer(layersRef.current.defaultLayer);
         }
     }, [mapRef.current, layersRef, layerControlRef]);
 

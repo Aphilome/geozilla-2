@@ -2,10 +2,10 @@ import React, {useEffect, useRef} from "react";
 import L, {Map} from "leaflet";
 import {FeatureCollection} from "geojson";
 import {colorizeFigure, getFigureLayer} from "../utils/layerUtils";
-import Layers from "../types/Layers";
+import FigureLayers from "../types/FigureLayers";
 
 interface MapEditorProps {
-    layersRef: React.MutableRefObject<Layers>;
+    layersRef: React.MutableRefObject<FigureLayers>;
     geoJsonViewRef: React.MutableRefObject<FeatureCollection>;
     setGeoJsonView: (geoJson: FeatureCollection) => void;
     activeLayer: string;
