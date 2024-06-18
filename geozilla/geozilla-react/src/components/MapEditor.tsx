@@ -6,14 +6,14 @@ import Layers from "../types/Layers";
 
 interface MapEditorProps {
     layersRef: React.MutableRefObject<Layers>;
-    geoJsonView: FeatureCollection;
+    geoJsonViewRef: React.MutableRefObject<FeatureCollection>;
     setGeoJsonView: (geoJson: FeatureCollection) => void;
     activeLayer: string;
     nextFeatureIdRef: React.MutableRefObject<number>;
     mapRef: React.MutableRefObject<Map | undefined>;
 }
 
-const MapEditor: React.FC<MapEditorProps> = ({ geoJsonView, setGeoJsonView, layersRef, activeLayer, nextFeatureIdRef, mapRef }) => {
+const MapEditor: React.FC<MapEditorProps> = ({ geoJsonViewRef, setGeoJsonView, layersRef, activeLayer, nextFeatureIdRef, mapRef }) => {
     console.log('MapEditor component');
 
     const activeLayerRef = useRef<string>(activeLayer);
@@ -42,7 +42,7 @@ const MapEditor: React.FC<MapEditorProps> = ({ geoJsonView, setGeoJsonView, laye
                 geoJson.properties.featureId = nextFeatureIdRef.current;
 
                 nextFeatureIdRef.current++;
-                setGeoJsonView({ type: geoJsonView.type, features: [...geoJsonView.features, geoJson]})
+                setGeoJsonView({ type: geoJsonViewRef.current.type, features: [...geoJsonViewRef.current.features, geoJson]})
             }
         });
 

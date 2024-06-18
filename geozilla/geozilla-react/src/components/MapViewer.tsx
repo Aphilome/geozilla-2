@@ -36,6 +36,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
     const [activeLayer, setActiveLayer] = useState<string>('default');
 
     const [geoJsonView, setGeoJsonView] = useState<FeatureCollection>({type: "FeatureCollection", features: []})
+    const geoJsonViewRef = useRef<FeatureCollection>(geoJsonView);
     //const [nextFeatureId, setNextFeatureId] = useState(1);
     const nextFeatureId = useRef(1);
     const mapRef = useRef<Map>();
@@ -68,6 +69,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
 
     useEffect(() => {
         console.log(`change geoJsonView: ${geoJsonView.features.length}`);
+        geoJsonViewRef.current = geoJsonView;
     }, [geoJsonView]);
 
 
@@ -96,7 +98,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             />
                             <MapSettings layerControlRef={layerControlRef} layersRef={layersRef} mapRef={mapRef}/>
-                            {mapRef.current && <MapEditor geoJsonView={geoJsonView} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
+                            {mapRef.current && <MapEditor geoJsonViewRef={geoJsonViewRef} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
 
                         </MapContainer>
                         <div className="layer-buttons">
