@@ -29,8 +29,8 @@ public static class GeneratoGeoJsonApi
             request.File.OpenReadStream().CopyTo(outputFileStream);
         }
 
-        //var result = await service.Generate(Path.GetFullPath(path));
-        var result = TestData.GeoJson;
+        var result = await service.Generate(Path.GetFullPath(path), request.Latitude, request.Longitude);
+        result = TestData.GeoJson;
         return result;
     }
 }
