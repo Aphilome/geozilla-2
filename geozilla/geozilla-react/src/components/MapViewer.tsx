@@ -11,6 +11,7 @@ import MapEditor from "./MapEditor";
 import MapSettings from "./MapSettings";
 import {colorizeFigure, getFigureLayer} from "../utils/layerUtils";
 import FigureLayers from "../types/FigureLayers";
+import JsonView from "@uiw/react-json-view";
 
 
 interface MapViewerProps {
@@ -86,8 +87,8 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
                         </div>
                     </Grid>
                     <Grid item xs={4} style={{ height: "500px" }}>
-                        <div style={{ height: '100%', overflow: 'auto' }}>
-                            {JSON.stringify(geoJsonView)}
+                        <div style={{ height: '100%', overflow: 'auto', textAlign:'start' }}>
+                            <JsonView value={geoJsonView} />
                         </div>
                     </Grid>
                 </Grid>
