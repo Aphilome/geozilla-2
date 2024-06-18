@@ -49,7 +49,7 @@ const char* ConvertToRawMemory(const std::string& data)
 
 } // namespace
 
-const char* GenerateGeoJson(const char* path, double latitude, double longitude)
+const char* GenerateGeoJson(const char* path, float latitude, float longitude)
 {
     auto models = LoadGeoModels(path);
     auto pointCloud = ConvertToPointCloud(models);

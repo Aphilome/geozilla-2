@@ -34,11 +34,11 @@ struct Arguments
 {
     std::string inputPath;
     std::optional<std::string> outputPath;
-    double latitude = 0.0;
-    double longitude = 0.0;
+    float latitude = 0.0;
+    float longitude = 0.0;
 };
 
-double GetDoubleArgument(argparse::ArgumentParser& program, const std::string& argumentName)
+float ParseFloatArgument(argparse::ArgumentParser& program, const std::string& argumentName)
 {
     auto argument = program.present(argumentName);
     if (!argument.has_value())
@@ -46,7 +46,7 @@ double GetDoubleArgument(argparse::ArgumentParser& program, const std::string& a
 
     try
     {
-        return std::stod(*argument);
+        return std::stof(*argument);
     }
     catch (const std::exception& e)
     {
@@ -70,8 +70,8 @@ Arguments ParseArguments(argparse::ArgumentParser& program, int argc, char* argv
     Arguments arguments = {};
     arguments.inputPath = program.get("-i");
     arguments.outputPath = program.present("-o");
-    arguments.latitude = GetDoubleArgument(program, "--latitude");
-    arguments.longitude = GetDoubleArgument(program, "--longitude");
+    arguments.latitude = ParseFloatArgument(program, "--latitude");
+    arguments.longitude = ParseFloatArgument(program, "--longitude");
     return arguments;
 }
 
