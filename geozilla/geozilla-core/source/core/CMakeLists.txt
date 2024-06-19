@@ -37,6 +37,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${PCL_INCLUDE_DIRS}
+        ${PCL_VISUALIZATION_INCLUDE_DIR}
 )
 
 link_directories(${PCL_LIBRARY_DIRS})
