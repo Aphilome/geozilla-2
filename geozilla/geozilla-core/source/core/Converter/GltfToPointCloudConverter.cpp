@@ -35,7 +35,7 @@ void GltfToPointCloudConverter::Convert(const IGeoModelLoader::GeoModel& model, 
             auto x = positions[3 * i + 0];
             auto y = positions[3 * i + 1];
             auto z = positions[3 * i + 2];
-            points.emplace_back(x, y, z, 1.0f, 1.0f, 1.0f);
+            points.emplace_back(x, y, z);
         }
     };
 
