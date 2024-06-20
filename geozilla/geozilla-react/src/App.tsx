@@ -9,15 +9,15 @@ import DataSender from "./components/DataSender";
 import {FeatureCollection} from "geojson";
 
 const App = () => {
+    console.log("App component");
     const [geoJson, setGeoJson] = useState<FeatureCollection | null>(null);
 
-    console.log("### App")
-  return (
-    <div className="App">
-        {!geoJson && <DataSender setGeoJson={setGeoJson}/>}
-        {geoJson && <MapViewer geoJson={geoJson} setGeoJson={setGeoJson} center={[56.1322200, 47.2519400]} zoom={10} />}
-    </div>
-  );
+    return (
+        <div className="App">
+            {!geoJson && <DataSender setGeoJson={setGeoJson}/>}
+            {geoJson && <MapViewer geoJson={geoJson} center={[56.1322200, 47.2519400]} zoom={10} />}
+        </div>
+    );
 }
 
 export default App;
