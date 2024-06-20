@@ -11,7 +11,7 @@ namespace gz::core
 class GltfToPointCloudConverter
 {
 public:
-    using Points = pcl::PointCloud<pcl::PointXYZ>;
+    using Points = pcl::PointCloud<pcl::PointXYZRGB>;
 
     static void Convert(const IGeoModelLoader::GeoModel& model, Points& points);
 };
