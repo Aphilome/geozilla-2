@@ -14,8 +14,8 @@ namespace geozilla_bl.Services.Generation.Concrete
 
         private const string DllName = $"../../../../../geozilla-core/bin/{ConfigName}/geozilla-core.dll";
 
-        [DllImport(DllName, EntryPoint = "?GenerateGeoJson@@YAPEBDPEBD@Z", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GenerateGeoJson([MarshalAs(UnmanagedType.LPStr)] string path);
+        [DllImport(DllName, EntryPoint = "?GenerateGeoJson@@YAPEBDPEBDMM@Z", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GenerateGeoJson([MarshalAs(UnmanagedType.LPStr)] string path, float latitude, float longitude);
 
         [DllImport(DllName, EntryPoint = "?FreeBuffer@@YAXPEBD@Z", CallingConvention = CallingConvention.Cdecl)]
         public static extern void FreeBuffer(IntPtr buffer);

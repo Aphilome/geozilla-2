@@ -33,7 +33,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({setUploadedFile}) => {
             <Snackbar
                 open={snackbarOpen}
                 onClose={() => setSnackbarOpen(false)}
-                message="File uploaded successfully"
+                message="Файл успешно загружен"
             />
         </div>
     );
