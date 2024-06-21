@@ -12,19 +12,21 @@ interface DataSenderProps {
 
 const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [selectedCoords, setSelectedCoords] = useState<LatLngString | null>(null);
+    const [selectedCoordsNW, setSelectedCoordsNW] = useState<LatLngString | null>(null);
+    const [selectedCoordsSE, setSelectedCoordsSE] = useState<LatLngString | null>(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = () => {
-        if (!selectedCoords || !uploadedFile)
+        if (!selectedCoordsNW || !selectedCoordsSE || !uploadedFile)
             return;
 
-        GenerateGeoJsonApi.sendData(selectedCoords, uploadedFile)
+        GenerateGeoJsonApi.sendData(selectedCoordsNW, selectedCoordsSE, uploadedFile)
             .then(async response => {
                 if (response) {
                     setSnackbarOpen(true);
-                    setSelectedCoords({lat: '', lng: ''});
+                    setSelectedCoordsSE({lat: '', lng: '', hgt: ''});
+                    setSelectedCoordsNW({lat: '', lng: '', hgt: ''});
                     setUploadedFile(null);
                     setError('');
                     setGeoJson(JSON.parse(await response.data.text()));
@@ -42,7 +44,7 @@ const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
         <Container>
 
             <Box marginTop={4}>
-                <CoordinateInput selectedCoords={selectedCoords} setSelectedCoords={setSelectedCoords}/>
+                <CoordinateInput setSelectedCoordsNW={setSelectedCoordsNW} setSelectedCoordsSE={setSelectedCoordsSE}/>
             </Box>
 
             {error && <p style={{ color: 'red' }}>{error}</p>}

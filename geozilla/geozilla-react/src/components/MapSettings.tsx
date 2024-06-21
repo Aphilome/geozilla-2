@@ -1,51 +1,48 @@
 import {useMap} from "react-leaflet";
 import React, {useEffect} from "react";
-import L from "leaflet";
+import L, {Map} from "leaflet";
+import FigureLayers from "../types/FigureLayers";
 
 interface MapSettingsProps {
-    mapRef:  React.MutableRefObject<L.Map | null>;
     layerControlRef:  React.MutableRefObject<L.Control.Layers | null>;
-
-    grassLayerRef:  React.MutableRefObject<L.FeatureGroup<any>>;
-    // obstacleLayerRef
-    roadLayerRef:  React.MutableRefObject<L.FeatureGroup<any>>;
-    sidewalkLayerRef:  React.MutableRefObject<L.FeatureGroup<any>>;
-    buildingLayerRef:  React.MutableRefObject<L.FeatureGroup<any>>;
-    defaultLayerRef:  React.MutableRefObject<L.FeatureGroup<any>>;
+    layersRef:  React.MutableRefObject<FigureLayers>;
+    mapRef: React.MutableRefObject<Map | undefined>;
 }
 
-const MapSettings: React.FC<MapSettingsProps> = ({ mapRef , layerControlRef, grassLayerRef, roadLayerRef, sidewalkLayerRef, buildingLayerRef, defaultLayerRef}) => {
+const MapSettings: React.FC<MapSettingsProps> = ({ layerControlRef, layersRef, mapRef}) => {
+    console.log('MapSettings component');
     const map = useMap();
+
     useEffect(() => {
-        if (!mapRef.current) {
+        if (!mapRef.current){
             mapRef.current = map;
-
-            map.pm.addControls({
-                position: 'topleft',
-                drawCircleMarker: false,
-                rotateMode: false,
-                drawText: false,
-            });
-
-            if (layerControlRef.current === null) {
-                layerControlRef.current = L.control.layers({}, {
-                    'Grass': grassLayerRef.current,
-                    'Road': roadLayerRef.current,
-                    'Sidewalk': sidewalkLayerRef.current,
-                    'Building': buildingLayerRef.current,
-                    'Default': defaultLayerRef.current
-
-
-                }, { collapsed: false }).addTo(map);
-
-                map.addLayer(grassLayerRef.current);
-                map.addLayer(roadLayerRef.current);
-                map.addLayer(sidewalkLayerRef.current);
-                map.addLayer(buildingLayerRef.current);
-                map.addLayer(defaultLayerRef.current);
-            }
         }
-    }, [map, grassLayerRef, roadLayerRef, sidewalkLayerRef, buildingLayerRef, defaultLayerRef, layerControlRef, mapRef]);
+        mapRef.current.pm.addControls({
+            position: 'topleft',
+            drawCircleMarker: false,
+            rotateMode: true,
+            drawText: false,
+            drawMarker: false,
+        });
+
+        if (layerControlRef.current === null) {
+            layerControlRef.current = L.control.layers({}, {
+                'Grass': layersRef.current.grassLayer,
+                'Road': layersRef.current.roadLayer,
+                'Sidewalk': layersRef.current.sidewalkLayer,
+                'Building': layersRef.current.buildingLayer,
+                'Obstacles': layersRef.current.obstaclesLayer,
+                'Default': layersRef.current.defaultLayer
+            }, { collapsed: false }).addTo(map);
+
+            mapRef.current.addLayer(layersRef.current.grassLayer);
+            mapRef.current.addLayer(layersRef.current.roadLayer);
+            mapRef.current.addLayer(layersRef.current.sidewalkLayer);
+            mapRef.current.addLayer(layersRef.current.buildingLayer);
+            mapRef.current.addLayer(layersRef.current.obstaclesLayer);
+            mapRef.current.addLayer(layersRef.current.defaultLayer);
+        }
+    }, [mapRef.current, layersRef, layerControlRef]);
 
     return null;
 }
