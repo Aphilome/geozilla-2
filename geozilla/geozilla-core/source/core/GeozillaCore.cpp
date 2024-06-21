@@ -7,25 +7,6 @@
 #include <Algorithm/ConcaveHullGenerator.h>
 #include <Algorithm/GeoJsonGenerator.h>
 
-// remove unused
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/search/search.h>
-#include <pcl/search/kdtree.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/filters/filter_indices.h> // for pcl::removeNaNFromPointCloud
-#include <pcl/segmentation/region_growing.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/segmentation/extract_clusters.h>
-
-#include <pcl/common/common.h>
-#include <pcl/filters/project_inliers.h>
-#include <pcl/surface/concave_hull.h>
-#include <pcl/filters/extract_indices.h>
-
-#include <thread>
 #include <algorithm>
 
 using namespace gz::core;
