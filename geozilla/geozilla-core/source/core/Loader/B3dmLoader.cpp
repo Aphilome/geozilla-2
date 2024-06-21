@@ -2,7 +2,6 @@
 
 #include "B3dmLoader.h"
 
-#include <CesiumGltf/Model.h>
 #include <Cesium3DTilesContent/GltfConverters.h>
 #include <Cesium3DTilesContent/B3dmToGltfConverter.h>
 
@@ -76,7 +75,7 @@ bool B3dmLoader::IsFileSupported(const std::filesystem::path& path) const
     return path.extension().compare(".b3dm") == 0;
 }
 
-std::vector<IGeoModelLoader::GeoModel> B3dmLoader::Load(const std::filesystem::path& path)
+std::vector<GeoModel> B3dmLoader::Load(const std::filesystem::path& path)
 {
     auto content = ReadFile(path);
     auto options = CesiumGltfReader::GltfReaderOptions();
@@ -84,7 +83,7 @@ std::vector<IGeoModelLoader::GeoModel> B3dmLoader::Load(const std::filesystem::p
     auto future = Cesium3DTilesContent::B3dmToGltfConverter::convert(content, options, assetFetcher);
     auto result = future.wait();
 
-    auto models = std::vector<IGeoModelLoader::GeoModel>();
+    auto models = std::vector<GeoModel>();
     if (result.model.has_value())
     {
         models.emplace_back(std::move(result.model.value()));

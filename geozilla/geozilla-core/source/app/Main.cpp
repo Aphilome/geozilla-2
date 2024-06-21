@@ -34,25 +34,7 @@ struct Arguments
 {
     std::string inputPath;
     std::optional<std::string> outputPath;
-    float latitude = 0.0;
-    float longitude = 0.0;
 };
-
-float ParseFloatArgument(argparse::ArgumentParser& program, const std::string& argumentName)
-{
-    auto argument = program.present(argumentName);
-    if (!argument.has_value())
-        return 0.0;
-
-    try
-    {
-        return std::stof(*argument);
-    }
-    catch (const std::exception& e)
-    {
-        return 0.0;
-    }
-}
 
 Arguments ParseArguments(argparse::ArgumentParser& program, int argc, char* argv[])
 {
@@ -70,8 +52,6 @@ Arguments ParseArguments(argparse::ArgumentParser& program, int argc, char* argv
     Arguments arguments = {};
     arguments.inputPath = program.get("-i");
     arguments.outputPath = program.present("-o");
-    arguments.latitude = ParseFloatArgument(program, "--latitude");
-    arguments.longitude = ParseFloatArgument(program, "--longitude");
     return arguments;
 }
 
@@ -83,19 +63,15 @@ int main(int argc, char* argv[])
     CreateArgumentsParser(program);
 
     auto arguments = ParseArguments(program, argc, argv);
-    auto* geoJson = GenerateGeoJson(arguments.inputPath.c_str(), arguments.latitude, arguments.longitude);
-    if (geoJson)
+    auto geoJson = GenerateGeoJson(arguments.inputPath);
+    if (arguments.outputPath)
     {
-        if (arguments.outputPath)
-        {
-            std::ofstream output(*arguments.outputPath);
-            output << geoJson;
-        }
-        else
-        {
-            std::cout << geoJson << std::endl;
-        }
-        FreeBuffer(geoJson);
+        std::ofstream output(*arguments.outputPath);
+        output << geoJson;
+    }
+    else
+    {
+        std::cout << geoJson << std::endl;
     }
 
     return 0;
