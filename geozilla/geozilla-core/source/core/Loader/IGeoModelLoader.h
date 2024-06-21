@@ -1,15 +1,10 @@
 #pragma once
 
+#include "GeoTypes.h"
+
 #include <memory>
 #include <vector>
 #include <filesystem>
-
-namespace CesiumGltf
-{
-
-struct Model;
-
-} // CesiumGltf
 
 namespace gz::core
 {
@@ -18,8 +13,6 @@ struct ILogger;
 
 struct IGeoModelLoader
 {
-    using GeoModel = CesiumGltf::Model;
-
     virtual ~IGeoModelLoader() = default;
 
     virtual void SetLogger(std::shared_ptr<ILogger> logger) = 0;
