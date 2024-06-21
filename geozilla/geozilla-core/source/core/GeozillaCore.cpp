@@ -1,11 +1,11 @@
 #include "GeozillaCore.h"
-#include "Converter/GltfToPointCloudConverter.h"
 
 #include <Logger/ConsoleLogger.h>
 #include <Loader/GeoModelLoader.h>
-#include <ZoneSplitter/ZoneSplitter.h>
 
-#include <CesiumGltf/Model.h>
+#include "Algorithm/GltfToPointCloudConverter.h"
+#include <Algorithm/ConcaveHullGenerator.h>
+#include <Algorithm/GeoJsonGenerator.h>
 
 // remove unused
 #include <pcl/point_types.h>
@@ -28,54 +28,76 @@
 #include <thread>
 #include <algorithm>
 
+using namespace gz::core;
+
 namespace
 {
 
-std::vector<gz::core::IGeoModelLoader::GeoModel> LoadGeoModels(const char* path)
+std::vector<GeoModel> LoadGeoModels(const std::filesystem::path& path)
 {
-    if (!path)
+    if (!std::filesystem::exists(path))
         return {};
 
-    auto loader = gz::core::GeoModelLoader();
+    auto loader = GeoModelLoader();
 #ifdef _DEBUG
-    loader.SetLogger(std::make_shared<gz::core::ConsoleLogger>());
+    loader.SetLogger(std::make_shared<ConsoleLogger>());
 #endif
     return loader.Load(path);
 }
 
-gz::core::GltfToPointCloudConverter::Points::Ptr ConvertToPointCloud(const std::vector<gz::core::IGeoModelLoader::GeoModel>& models)
+GeoPointCloud ConvertToPointCloud(const std::vector<GeoModel>& models)
 {
-    using namespace gz::core;
+    if (models.empty())
+        return {};
 
-    auto pointCloud = std::make_shared<GltfToPointCloudConverter::Points>();
-
-    std::for_each(std::begin(models), std::end(models), [&pc = *pointCloud](const auto& model)
-    {
-        gz::core::GltfToPointCloudConverter::Convert(model, pc);
-    });
-
-    return pointCloud;
+    assert((models.size() == 1) && "Multi models is not supported");
+    return GltfToPointCloudConverter::Convert(models.front(), true);
 }
 
-const char* ConvertToRawMemory(const std::string& data)
+std::vector<GeoPointCloud> GenerateConcaveHulls(const std::vector<GeoPointCloud>& pointClouds)
 {
-    const auto size = data.size();
-    auto* buffer = new char[size + 1];
-    buffer[size] = '\0';
-    std::copy(std::cbegin(data), std::cend(data), buffer);
-    return buffer;
+    std::vector<GeoPointCloud> concaveHulls(pointClouds.size());
+    std::transform(std::begin(pointClouds), std::end(pointClouds), std::begin(concaveHulls), [](const GeoPointCloud& pc)
+    {
+        return ConcaveHullGenerator::Generate(pc);
+    });
+    return concaveHulls;
+}
+
+GeoJson GenerateGeoJson(const std::vector<GeoPointCloud>& pointClouds, const std::filesystem::path& path)
+{
+    auto fileName = path.filename().string();
+    auto dotPos = fileName.find_last_of('.');
+    if (dotPos != std::string::npos)
+    {
+        fileName = fileName.substr(0, dotPos);
+    }
+    return GeoJsonGenerator::Generate(pointClouds, fileName);
 }
 
 } // namespace
 
-const char* GenerateGeoJson(const char* path, float latitude, float longitude)
+std::string GenerateGeoJson(const std::filesystem::path& path)
 {
+    constexpr auto indent = 4;
     auto models = LoadGeoModels(path);
-    auto originalCloud = ConvertToPointCloud(models);
-    auto splitter = ZoneSplitter();
-    auto geoJson = splitter.GenerateGeoJson(originalCloud);
+    auto pointCloud = ConvertToPointCloud(models);
+    auto hullClouds = GenerateConcaveHulls({ pointCloud });
+    auto geoJson = GenerateGeoJson(hullClouds, path);
+    return geoJson.dump(indent);
+}
 
-    return ConvertToRawMemory(geoJson);
+const char* GenerateGeoJsonBuffer(const char* path)
+{
+    if (!path)
+        return nullptr;
+
+    auto geoJson = GenerateGeoJson(path);
+    const auto size = geoJson.size();
+    auto* buffer = new char[size + 1];
+    buffer[size] = '\0';
+    std::copy(std::cbegin(geoJson), std::cend(geoJson), buffer);
+    return buffer;
 }
 
 void FreeBuffer(const char* buffer)

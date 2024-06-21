@@ -1,116 +1,71 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import {MapContainer, TileLayer} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L, { PathOptions } from 'leaflet';
-import { FeatureCollection } from 'geojson';
+import L, {LeafletEvent, Map} from 'leaflet';
+import { Feature, FeatureCollection } from 'geojson';
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import { Box, Container, Grid, Button } from "@mui/material";
+import {Box, Container, Grid, Button} from "@mui/material";
 import "./MapViewer.css";
-import MapEditor from "./MapEditor";
+import FigureCreator from "./FigureCreator";
 import MapSettings from "./MapSettings";
+import {colorizeFigure, getFigureLayer} from "../utils/LayerUtils";
+import FigureLayers from "../types/FigureLayers";
+import JsonView from "@uiw/react-json-view";
+import {onEditHandler, onRemoveHandler} from "../utils/MapEventHandlers";
 
 interface MapViewerProps {
     center: [number, number];
     zoom: number;
-    geoJson: FeatureCollection | null;
-    setGeoJson: (geoJson: FeatureCollection) => void;
+    geoJson: FeatureCollection;
 }
 
-const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson }) => {
-    const grassLayerRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
-    const roadLayerRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
-    const sidewalkLayerRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
-    const buildingLayerRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
-    const defaultLayerRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
+const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
+    console.log('MapViewer component')
+
+    const layersRef = useRef<FigureLayers>({
+        grassLayer: new L.FeatureGroup(),
+        roadLayer: new L.FeatureGroup(),
+        sidewalkLayer: new L.FeatureGroup(),
+        buildingLayer: new L.FeatureGroup(),
+        obstaclesLayer: new L.FeatureGroup(),
+        defaultLayer: new L.FeatureGroup()
+    })
+
+    const [activeLayer, setActiveLayer] = useState<string>('default');
+    const [geoJsonView, setGeoJsonView] = useState<FeatureCollection>({type: "FeatureCollection", features: []})
 
     const layerControlRef = useRef<L.Control.Layers | null>(null);
-    const mapRef = useRef<L.Map | null>(null);
-    const [activeLayer, setActiveLayer] = useState<string>('default');
+    const geoJsonViewRef = useRef<FeatureCollection>(geoJsonView);
+    const nextFeatureId = useRef(1);
+    const mapRef = useRef<Map>();
 
     useEffect(() => {
-        if (!geoJson) return;
-
-        grassLayerRef.current.clearLayers();
-        roadLayerRef.current.clearLayers();
-        sidewalkLayerRef.current.clearLayers();
-        buildingLayerRef.current.clearLayers();
-        defaultLayerRef.current.clearLayers();
-
         const features = geoJson.features;
-
+        let featuresView: Feature[] = [];
         features.forEach((feature) => {
             const zoneType = feature.properties!.zoneType;
-
             const layer = L.geoJSON(feature, {
-                style: colorize(zoneType)
+                style: colorizeFigure(zoneType)
             });
 
-            const targetLayer = getLayer(zoneType);
+            const targetLayer = getFigureLayer(zoneType, layersRef);
             targetLayer.addLayer(layer);
+
+            feature.properties!.featureId = nextFeatureId.current++;
+            layer.on('pm:edit', (e: LeafletEvent) =>
+                onEditHandler(e, feature.properties!.featureId, geoJsonViewRef, setGeoJsonView));
+            layer.on('pm:remove', (e: LeafletEvent) =>
+                onRemoveHandler(e, feature.properties!.featureId, geoJsonViewRef, setGeoJsonView));
+
+            featuresView.push(feature);
         });
-    }, [geoJson]);
+        setGeoJsonView({ type: geoJsonView.type, features: featuresView});
+    }, []);
 
-    const getLayer = (zoneType: string) => {
-        switch (zoneType) {
-            case 'grass':
-                return grassLayerRef.current;
-            case 'road':
-                return roadLayerRef.current;
-            case 'sidewalk':
-                return sidewalkLayerRef.current;
-            case 'building':
-                return buildingLayerRef.current;
-            default:
-                return defaultLayerRef.current;
-        }
-    };
-
-    const colorize = (zoneType: string): PathOptions => {
-        switch (zoneType) {
-            case 'grass':
-                return {
-                    color: '#76c893',
-                    weight: 2,
-                    fillColor: '#76c893',
-                    fillOpacity: 0.5,
-                };
-            case 'road':
-                return {
-                    color: '#a1a1a1',
-                    weight: 2,
-                    fillColor: '#a1a1a1',
-                    fillOpacity: 0.5,
-                };
-            case 'sidewalk':
-                return {
-                    color: '#d1d1d1',
-                    weight: 2,
-                    fillColor: '#d1d1d1',
-                    fillOpacity: 0.5,
-                };
-            case 'building':
-                return {
-                    color: '#ff8c00',
-                    weight: 2,
-                    fillColor: '#ff8c00',
-                    fillOpacity: 0.5,
-                };
-            default:
-                return {
-                    color: '#ee5858',
-                    weight: 2,
-                    fillColor: '#a11ae0',
-                    fillOpacity: 0.5,
-                };
-        }
-    };
-
-
-    const handleLayerButtonClick = (layerName: string) => {
-        setActiveLayer(layerName);
-        console.log(`Highlighted layer: ${layerName}`);
-    };
+    useEffect(() => {
+        geoJsonViewRef.current = geoJsonView;
+    }, [geoJsonView]);
 
     return (
         <Container>
@@ -122,20 +77,21 @@ const MapViewer: React.FC<MapViewerProps> = ({ center, zoom, geoJson, setGeoJson
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             />
-                            <MapEditor geoJson={geoJson} setGeoJson={setGeoJson} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sideWalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef} activeLayer={activeLayer} />
-                            <MapSettings mapRef={mapRef} layerControlRef={layerControlRef} grassLayerRef={grassLayerRef} roadLayerRef={roadLayerRef} sidewalkLayerRef={sidewalkLayerRef} buildingLayerRef={buildingLayerRef} defaultLayerRef={defaultLayerRef}/>
+                            <MapSettings layerControlRef={layerControlRef} layersRef={layersRef} mapRef={mapRef}/>
+                            {mapRef.current && <FigureCreator geoJsonViewRef={geoJsonViewRef} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
+
                         </MapContainer>
                         <div className="layer-buttons">
-                            <Button variant={activeLayer === 'default' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('default')}>Default</Button>
-                            <Button variant={activeLayer === 'grass' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('grass')}>Grass</Button>
-                            <Button variant={activeLayer === 'road' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('road')}>Road</Button>
-                            <Button variant={activeLayer === 'sidewalk' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('sidewalk')}>Sidewalk</Button>
-                            <Button variant={activeLayer === 'building' ? 'contained' : 'outlined'} color="primary" onClick={() => handleLayerButtonClick('building')}>Building</Button>
+                            <Button variant={activeLayer === 'default' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('default')}>Default</Button>
+                            <Button variant={activeLayer === 'grass' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('grass')}>Grass</Button>
+                            <Button variant={activeLayer === 'road' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('road')}>Road</Button>
+                            <Button variant={activeLayer === 'sidewalk' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('sidewalk')}>Sidewalk</Button>
+                            <Button variant={activeLayer === 'building' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('building')}>Building</Button>
                         </div>
                     </Grid>
                     <Grid item xs={4} style={{ height: "500px" }}>
-                        <div style={{ height: '100%', overflow: 'auto' }}>
-                            {JSON.stringify(geoJson)}
+                        <div style={{ height: '100%', overflow: 'auto', textAlign:'start' }}>
+                            <JsonView value={geoJsonView} />
                         </div>
                     </Grid>
                 </Grid>

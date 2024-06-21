@@ -1,8 +1,10 @@
 set(PROJECT_NAME geozilla-core)
 
 set(SOURCE_LIST
-    # DLL
     DllMain.cpp
+
+    GeoTypes.h
+
     GeozillaCore.h
     GeozillaCore.cpp
 
@@ -20,9 +22,13 @@ set(SOURCE_LIST
     Loader/B3dmLoader.h
     Loader/B3dmLoader.cpp
 
-    # Converter
-    Converter/GltfToPointCloudConverter.h
-    Converter/GltfToPointCloudConverter.cpp
+    # Algorithm
+    Algorithm/GltfToPointCloudConverter.h
+    Algorithm/GltfToPointCloudConverter.cpp
+    Algorithm/ConcaveHullGenerator.h
+    Algorithm/ConcaveHullGenerator.cpp
+    Algorithm/GeoJsonGenerator.h
+    Algorithm/GeoJsonGenerator.cpp
 
     # ZoneSplitter
     ZoneSplitter/ZoneSplitter.h
@@ -30,6 +36,7 @@ set(SOURCE_LIST
 )
 
 find_package(PCL REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_LIST})
 
@@ -46,6 +53,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         CesiumGltf
         Cesium3DTilesContent
+        nlohmann_json
         ${PCL_LIBRARIES}
 )
 
