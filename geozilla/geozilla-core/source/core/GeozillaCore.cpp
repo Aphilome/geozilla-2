@@ -7,8 +7,6 @@
 #include <Algorithm/ConcaveHullGenerator.h>
 #include <Algorithm/GeoJsonGenerator.h>
 
-#include <pcl/visualization/cloud_viewer.h>
-
 #include <algorithm>
 
 using namespace gz::core;
@@ -34,7 +32,7 @@ GeoPointCloud ConvertToPointCloud(const std::vector<GeoModel>& models)
         return {};
 
     assert((models.size() == 1) && "Multi models is not supported");
-    return GltfToPointCloudConverter::Convert(models.front());
+    return GltfToPointCloudConverter::Convert(models.front(), true);
 }
 
 std::vector<GeoPointCloud> GenerateConcaveHulls(const std::vector<GeoPointCloud>& pointClouds)
@@ -65,14 +63,6 @@ std::string GenerateGeoJson(const std::filesystem::path& path)
     constexpr auto indent = 4;
     auto models = LoadGeoModels(path);
     auto pointCloud = ConvertToPointCloud(models);
-
-    {
-        pcl::visualization::CloudViewer viewer("Simple Cloud Viewer");
-        viewer.showCloud(pointCloud.points);
-        while (!viewer.wasStopped())
-        {}
-    }
-
     auto hullClouds = GenerateConcaveHulls({ pointCloud });
     auto geoJson = GenerateGeoJson(hullClouds, path);
     return geoJson.dump(indent);

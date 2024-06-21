@@ -15,12 +15,15 @@
 namespace gz::core
 {
 
-GeoPointCloud GltfToPointCloudConverter::Convert(const GeoModel& model)
+GeoPointCloud GltfToPointCloudConverter::Convert(const GeoModel& model, bool normalize)
 {
     auto pointCloud = GeoPointCloud{};
     pointCloud.center = ExtractCenter(model);
     pointCloud.points = ExtractPoints(model);
-    pointCloud.points = Normalize(pointCloud.points, pointCloud.center);
+    if (normalize)
+    {
+        pointCloud.points = Normalize(pointCloud.points, pointCloud.center);
+    }
     return pointCloud;
 }
 

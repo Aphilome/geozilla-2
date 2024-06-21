@@ -2,5 +2,5 @@
 
 public interface IGeoJsonService
 {
-    Task<string> Generate(string path, float latitude, float longitude);
+    Task<string> Generate(string path);
 }

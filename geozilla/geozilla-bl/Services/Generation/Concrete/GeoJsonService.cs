@@ -5,9 +5,9 @@ namespace geozilla_bl.Services.Generation.Concrete;
 
 public class GeoJsonService: IGeoJsonService
 {
-    public async Task<string> Generate(string path, float latitude, float longitude)
+    public async Task<string> Generate(string path)
     {
-        IntPtr geoJsonPtr = GeozillaCoreDll.GenerateGeoJson(path, latitude, longitude);
+        IntPtr geoJsonPtr = GeozillaCoreDll.GenerateGeoJsonBuffer(path);
         string? geoJson = Marshal.PtrToStringAnsi(geoJsonPtr);
         GeozillaCoreDll.FreeBuffer(geoJsonPtr);
         return await Task.FromResult(geoJson ?? "{}");

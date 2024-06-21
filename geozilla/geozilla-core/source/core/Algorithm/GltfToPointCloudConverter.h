@@ -8,7 +8,7 @@ namespace gz::core
 class GltfToPointCloudConverter
 {
 public:
-    static GeoPointCloud Convert(const GeoModel& model);
+    static GeoPointCloud Convert(const GeoModel& model, bool normalize);
 
 private:
     static PointCloud::Ptr ExtractPoints(const GeoModel& model);
