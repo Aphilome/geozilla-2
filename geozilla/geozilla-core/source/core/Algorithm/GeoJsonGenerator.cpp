@@ -46,7 +46,8 @@ GeoJson GeoJsonGenerator::GenerateCoordinates(const GeoPointCloud& pointCloud)
 
     for (auto&& point : pc->points)
     {
-        auto cartesianPoint = glm::dvec3(point.x, point.y, point.z);
+        auto [cx, cy, cz] = pointCloud.center;
+        auto cartesianPoint = glm::dvec3(cx + point.x, cy + point.y, cz + point.z);
         auto cartographicPoint = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(cartesianPoint);
         if (cartographicPoint.has_value())
         {
