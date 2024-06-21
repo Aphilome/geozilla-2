@@ -11,13 +11,14 @@
 #include <pcl/common/common.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/segmentation/extract_clusters.h>
+#include <pcl/filters/passthrough.h>
 
 #include <algorithm>
 #include <thread>
 
 
 std::string ZoneSplitter::GenerateGeoJson(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud) {
-    auto layers = SplitToClouds(originalCloud);
+    auto clouds = SplitToClouds(originalCloud);
 
 
     return "{}";
@@ -26,8 +27,9 @@ std::string ZoneSplitter::GenerateGeoJson(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 
 std::vector<Zone> ZoneSplitter::SplitToClouds(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud) {
     auto zones = std::vector<Zone>();
-    zones.push_back(Zone{ "remove me", originalCloud });
+    zones.push_back(Zone{ "remove me, please", originalCloud });
 
+    
     auto horizontCloud = CreateHorizontCloud(originalCloud);
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr grassCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -40,13 +42,30 @@ std::vector<Zone> ZoneSplitter::SplitToClouds(pcl::PointCloud<pcl::PointXYZRGB>:
     }
     zones.push_back(Zone{ "grass", grassCloud });
     zones.push_back(Zone{ "road", roadCloud });
+    
+    
+
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr whithoutHorizontCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    pass.setInputCloud(originalCloud);
+    pass.setFilterFieldName("y");
+    pass.setFilterLimits(0.0, 10.0);
+    //pass.setNegative (true);
+    pass.filter(*whithoutHorizontCloud);
+
+
+
+    //zones.push_back(Zone{ "test", whithoutHorizontCloud });
 
     auto obstacles = CreateObstaclesObjects(originalCloud);
-    for (auto o : obstacles)
+    for (auto& o : obstacles)
         zones.push_back(Zone{ "obstacles", o });
 
-    for (auto z : zones)  
+
+    for (auto& z : zones)
         VisualizeCloud(z.cloud, z.type);
+        
 
     return zones;
 }
@@ -120,7 +139,7 @@ std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> ZoneSplitter::CreateObstacle
 
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
-    ec.setClusterTolerance(2); // 2 meters
+    ec.setClusterTolerance(1.2); // 2 meters
     ec.setMinClusterSize(100);
     ec.setMaxClusterSize(25000);
     ec.setSearchMethod(tree);
