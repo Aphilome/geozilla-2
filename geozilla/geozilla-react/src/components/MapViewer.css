@@ -5,3 +5,7 @@
     pointer-events: none; /* Отключаем взаимодействие с элементом через указатель */
 }
 
+.geoHightTooltip {
+    background: white;
+    padding: 1px 3px 1px 3px;
+}

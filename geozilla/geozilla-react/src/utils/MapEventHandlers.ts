@@ -3,6 +3,7 @@ import {LeafletEvent} from "leaflet";
 import React from "react";
 import FigureLayers from "../types/FigureLayers";
 import {FeatureCollection} from "geojson";
+import "./MapEventHandlers.css";
 
 const onCreateHandler = (e: LeafletEvent,
                          activeLayerRef: React.MutableRefObject<string>,
@@ -32,6 +33,16 @@ const onCreateHandler = (e: LeafletEvent,
     figure.on('pm:remove', (ie: LeafletEvent) => {
         onRemoveHandler(ie, geoJson.properties.featureId, geoJsonViewRef, setGeoJsonView);
     });
+
+    e.layer.bindTooltip("<div class='geoHightTooltip1'>" + "hi " + "</div>",
+        {
+            direction: 'right',
+            permanent: false,
+            sticky: true,
+            offset: [10, 0],
+            opacity: 0.75,
+            className: 'leaflet-tooltip-own'
+        });
 }
 
 const onEditHandler = (e: LeafletEvent,
