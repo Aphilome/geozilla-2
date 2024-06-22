@@ -1,8 +1,6 @@
 import React, {useState} from 'react';
-import {Box, Button, Container, Snackbar} from "@mui/material";
+import {Button, Container, Snackbar} from "@mui/material";
 import FileUploader from "./FileUploader";
-import CoordinateInput from "./CoordinateInput";
-import {LatLngString} from "../types/LatLng";
 import {GenerateGeoJsonApi} from "../api/GenerateGeoJsonApi";
 import {FeatureCollection } from "geojson";
 
@@ -12,21 +10,17 @@ interface DataSenderProps {
 
 const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [selectedCoordsNW, setSelectedCoordsNW] = useState<LatLngString | null>(null);
-    const [selectedCoordsSE, setSelectedCoordsSE] = useState<LatLngString | null>(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = () => {
-        if (!selectedCoordsNW || !selectedCoordsSE || !uploadedFile)
+        if (!uploadedFile)
             return;
 
-        GenerateGeoJsonApi.sendData(selectedCoordsNW, selectedCoordsSE, uploadedFile)
+        GenerateGeoJsonApi.sendData(uploadedFile)
             .then(async response => {
                 if (response) {
                     setSnackbarOpen(true);
-                    setSelectedCoordsSE({lat: '', lng: '', hgt: ''});
-                    setSelectedCoordsNW({lat: '', lng: '', hgt: ''});
                     setUploadedFile(null);
                     setError('');
                     setGeoJson(JSON.parse(await response.data.text()));
@@ -42,11 +36,6 @@ const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
 
     return (
         <Container>
-
-            <Box marginTop={4}>
-                <CoordinateInput setSelectedCoordsNW={setSelectedCoordsNW} setSelectedCoordsSE={setSelectedCoordsSE}/>
-            </Box>
-
             {error && <p style={{ color: 'red' }}>{error}</p>}
             <Snackbar
                 open={snackbarOpen}
@@ -54,13 +43,15 @@ const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
                 message="Данные успешно отправлены"
             />
 
-            { !uploadedFile && <Box margin={1}>Выберите файл</Box> }
-            <Box marginTop={1} marginBottom={1}>
-                <FileUploader setUploadedFile={setUploadedFile} />
-            </Box>
-            <Button variant="contained" onClick={handleSubmit}>
-                Отправить данные
-            </Button>
+            { !uploadedFile &&
+                <FileUploader uploadedFile={uploadedFile} setUploadedFile={setUploadedFile} />
+            }
+
+            { uploadedFile &&
+                <Button variant="contained" onClick={handleSubmit} style={{ height: '50px', width: '250px'}}>
+                    Отправить данные
+                </Button>
+            }
         </Container>
     );
 };

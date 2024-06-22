@@ -5,7 +5,7 @@ import L, {LeafletEvent, Map} from 'leaflet';
 import { Feature, FeatureCollection } from 'geojson';
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import {Box, Container, Grid, Button} from "@mui/material";
+import {Container, Grid, Button} from "@mui/material";
 import "./MapViewer.css";
 import FigureCreator from "./FigureCreator";
 import MapSettings from "./MapSettings";
@@ -67,9 +67,10 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
         geoJsonViewRef.current = geoJsonView;
     }, [geoJsonView]);
 
+    // @ts-ignore
     return (
         <Container>
-            <Box marginTop={4} height="500px">
+            <div style={{ height: '500px'}}>
                 <Grid container spacing={2}>
                     <Grid item xs={8} style={{ height: "500px" }}>
                         <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }} >
@@ -95,7 +96,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
                         </div>
                     </Grid>
                 </Grid>
-            </Box>
+            </div>
         </Container>
     );
 }
