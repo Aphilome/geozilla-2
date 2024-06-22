@@ -26,7 +26,6 @@ const FigureCreator: React.FC<MapEditorProps> = ({ geoJsonViewRef, setGeoJsonVie
     useEffect(() => {
         map.on('pm:create', (e: LeafletEvent) => {
             onCreateHandler(e, activeLayerRef, layersRef, nextFeatureIdRef, geoJsonViewRef, setGeoJsonView);
-
         });
 
         return () => {

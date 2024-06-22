@@ -58,15 +58,6 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
             layer.on('pm:remove', (e: LeafletEvent) =>
                 onRemoveHandler(e, feature.properties!.featureId, geoJsonViewRef, setGeoJsonView));
 
-            layer.bindTooltip("<div class='geoHightTooltip'>" + "hi " + "</div>",
-            {
-                direction: 'right',
-                permanent: false,
-                sticky: true,
-                offset: [10, 0],
-                opacity: 0.75,
-                className: 'leaflet-tooltip-own'
-            });
             featuresView.push(feature);
         });
         setGeoJsonView({ type: geoJsonView.type, features: featuresView});
