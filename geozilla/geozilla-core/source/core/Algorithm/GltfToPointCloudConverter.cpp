@@ -39,7 +39,7 @@ PointCloud::Ptr GltfToPointCloudConverter::ExtractPoints(const GeoModel& model)
     auto primitiveCallback = [&points](const Model& gltf, const Node& node, const Mesh& mesh, const MeshPrimitive& primitive, const glm::dmat4& transform)
     {
         const auto* positionAccessor = GetAccessor(gltf, primitive.attributes, "POSITION");
-        const auto positions = GetAttributeBuffer(gltf, positionAccessor);
+        auto positions = reinterpret_cast<const float*>(GetAttributeBuffer(gltf, positionAccessor));
         if (!positions)
         {
             assert(false && "Failed to find positions buffer");
@@ -53,8 +53,7 @@ PointCloud::Ptr GltfToPointCloudConverter::ExtractPoints(const GeoModel& model)
         {
             const auto attributeName = "TEXCOORD_" + std::to_string(textureInfo->texCoord);
             const auto* texCoordAccessor = GetAccessor(gltf, primitive.attributes, attributeName);
-            const auto* texCoordsData = GetAttributeBuffer(gltf, texCoordAccessor);
-            texCoords = reinterpret_cast<const float*>(texCoordsData);
+            texCoords = reinterpret_cast<const float*>(GetAttributeBuffer(gltf, texCoordAccessor));
             assert(!texCoordAccessor || (texCoordAccessor->type == CesiumGltf::AccessorSpec::Type::VEC2));
         }
 
