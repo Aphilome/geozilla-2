@@ -24,7 +24,7 @@ const App = () => {
                 </div>
                 :
                 <div>
-                    <MapViewer geoJson={geoJson} center={[56.1322200, 47.2519400]} zoom={10} />
+                    <MapViewer geoJson={geoJson} zoom={3} />
                 </div>
             }
         </div>

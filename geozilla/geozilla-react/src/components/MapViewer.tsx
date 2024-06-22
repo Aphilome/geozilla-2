@@ -5,7 +5,7 @@ import L, {LeafletEvent, Map} from 'leaflet';
 import { Feature, FeatureCollection } from 'geojson';
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import {Container, Grid, Button} from "@mui/material";
+import {Container, Grid} from "@mui/material";
 import "./MapViewer.css";
 import FigureCreator from "./FigureCreator";
 import MapSettings from "./MapSettings";
@@ -15,14 +15,14 @@ import JsonView from "@uiw/react-json-view";
 import {onEditHandler, onRemoveHandler} from "../utils/MapEventHandlers";
 import Visualizer from "./Visualizer";
 import { Tile } from './Tile';
+import ActiveLayerSelector from "./ActiveLayerSelector";
 
 interface MapViewerProps {
-    center: [number, number];
     zoom: number;
     geoJson: FeatureCollection;
 }
 
-const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
+const MapViewer: React.FC<MapViewerProps> = ({zoom, geoJson}) => {
     console.log('MapViewer component')
 
     const layersRef = useRef<FigureLayers>({
@@ -36,6 +36,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
 
     const [activeLayer, setActiveLayer] = useState<string>('default');
     const [geoJsonView, setGeoJsonView] = useState<FeatureCollection>({type: "FeatureCollection", features: []})
+    const [mapInitialized, setMapInitialized] = useState(false);
 
     const layerControlRef = useRef<L.Control.Layers | null>(null);
     const geoJsonViewRef = useRef<FeatureCollection>(geoJsonView);
@@ -69,37 +70,41 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
         geoJsonViewRef.current = geoJsonView;
     }, [geoJsonView]);
 
+    useEffect(() => {
+        if (!mapInitialized) return;
+
+        let bounds: L.LatLngBounds | null = null;
+        mapRef.current?.eachLayer((layer) => {
+            if (bounds || !('getBounds' in layer)) return;
+            bounds = (layer as any).getBounds() as L.LatLngBounds;
+        });
+        if (!bounds) return;
+
+        mapRef.current?.flyToBounds(bounds);
+    }, [mapInitialized])
+
     // @ts-ignore
     return (
         <Container>
-            <div style={{ height: '500px'}}>
-                <Grid container spacing={2}>
-                    <Grid item xs={8} style={{ height: "500px" }}>
-                        <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }} >
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            />
-                            <MapSettings layerControlRef={layerControlRef} layersRef={layersRef} mapRef={mapRef}/>
-                            {mapRef.current && <FigureCreator geoJsonViewRef={geoJsonViewRef} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
-
-                        </MapContainer>
-                        <div className="layer-buttons">
-                            <Button variant={activeLayer === 'default' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('default')}>Default</Button>
-                            <Button variant={activeLayer === 'grass' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('grass')}>Grass</Button>
-                            <Button variant={activeLayer === 'road' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('road')}>Road</Button>
-                            <Button variant={activeLayer === 'sidewalk' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('sidewalk')}>Sidewalk</Button>
-                            <Button variant={activeLayer === 'building' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('building')}>Building</Button>
-                        </div>
-                        <Visualizer model={<Tile/>}/>
-                    </Grid>
-                    <Grid item xs={4} style={{ height: "500px" }}>
-                        <div style={{ height: '100%', overflow: 'auto', textAlign:'start' }}>
-                            <JsonView value={geoJsonView} />
-                        </div>
-                    </Grid>
+            <Grid container spacing={2}>
+                <Grid item xs={7} style={{ height: "800px", width: '1600px' }}>
+                    <MapContainer center={[0, 0]} zoom={zoom} style={{ height: "100%", width: '100%' }} >
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+                        <MapSettings layerControlRef={layerControlRef} layersRef={layersRef} mapRef={mapRef} setMapInitialized={setMapInitialized}/>
+                        {mapRef.current && <FigureCreator geoJsonViewRef={geoJsonViewRef} setGeoJsonView={setGeoJsonView} layersRef={layersRef} activeLayer={activeLayer} nextFeatureIdRef={nextFeatureId} mapRef={mapRef} />}
+                    </MapContainer>
+                    <ActiveLayerSelector activeLayer={activeLayer} setActiveLayer={setActiveLayer}/>
+                    <Visualizer model={<Tile/>}/>
                 </Grid>
-            </div>
+                <Grid item xs={3} style={{ height: "800px" }}>
+                    <div style={{ height: '100%', overflow: 'auto', textAlign:'start' }}>
+                        <JsonView value={geoJsonView} />
+                    </div>
+                </Grid>
+            </Grid>
         </Container>
     );
 }

@@ -47,7 +47,6 @@ public static class GeneratoGeoJsonApi
 
     private static async Task<IResult> GetTile()
     {
-        Console.WriteLine("GetTile");
         var path = Path.Combine(TempUploadedFileDirectory, "tile.glb");
         var fullPath = Path.GetFullPath(path);
 
