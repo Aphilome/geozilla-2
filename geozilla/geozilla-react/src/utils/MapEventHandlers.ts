@@ -10,7 +10,6 @@ const onCreateHandler = (e: LeafletEvent,
                          nextFeatureIdRef: React.MutableRefObject<number>,
                          geoJsonViewRef: React.MutableRefObject<FeatureCollection>,
                          setGeoJsonView: (geoJsonView: FeatureCollection) => void) => {
-    console.log('Created shape:', e);
     const layer = e.layer;
     if (!('toGeoJSON' in layer && 'setStyle' in layer)) return;
 
@@ -39,7 +38,6 @@ const onEditHandler = (e: LeafletEvent,
                        featureId: number,
                        geoJsonViewRef: React.MutableRefObject<FeatureCollection>,
                        setGeoJsonView: (geoJsonView: FeatureCollection) => void) => {
-    console.log('Edited shape:', e);
     const layer = e.layer;
     if (!('toGeoJSON' in layer)) return;
 
@@ -54,8 +52,6 @@ const onRemoveHandler = (e: LeafletEvent,
                          featureId: number,
                          geoJsonViewRef: React.MutableRefObject<FeatureCollection>,
                          setGeoJsonView: (geoJsonView: FeatureCollection) => void) => {
-    console.log('Removed shape:', e);
-
     const otherFeatures = geoJsonViewRef.current.features.filter(f => f.properties!.featureId !== featureId);
 
     setGeoJsonView({...geoJsonViewRef.current, features: otherFeatures});

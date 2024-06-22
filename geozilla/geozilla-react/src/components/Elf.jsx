@@ -3,7 +3,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from "@react-three/fiber";
 
 export function Elf(props) {
-  const { nodes, materials } = useGLTF('/elf.gltf')
+  const { nodes, materials } = useGLTF('./elf.glb')
   const meshRef = useRef(null);
   useFrame(() => (meshRef.current.rotation.z += 0.003));
 
@@ -22,4 +22,4 @@ export function Elf(props) {
   )
 }
 
-useGLTF.preload('/elf.gltf')
+useGLTF.preload('./elf.glb')

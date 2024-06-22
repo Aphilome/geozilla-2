@@ -13,6 +13,8 @@ import {colorizeFigure, getFigureLayer} from "../utils/LayerUtils";
 import FigureLayers from "../types/FigureLayers";
 import JsonView from "@uiw/react-json-view";
 import {onEditHandler, onRemoveHandler} from "../utils/MapEventHandlers";
+import Visualizer from "./Visualizer";
+import { Tile } from './Tile';
 
 interface MapViewerProps {
     center: [number, number];
@@ -89,6 +91,7 @@ const MapViewer: React.FC<MapViewerProps> = ({center, zoom, geoJson}) => {
                             <Button variant={activeLayer === 'sidewalk' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('sidewalk')}>Sidewalk</Button>
                             <Button variant={activeLayer === 'building' ? 'contained' : 'outlined'} color="primary" onClick={() => setActiveLayer('building')}>Building</Button>
                         </div>
+                        <Visualizer model={<Tile/>}/>
                     </Grid>
                     <Grid item xs={4} style={{ height: "500px" }}>
                         <div style={{ height: '100%', overflow: 'auto', textAlign:'start' }}>
