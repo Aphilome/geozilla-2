@@ -3,6 +3,8 @@
 #include <CesiumUtility/Math.h>
 #include <CesiumGeospatial/Ellipsoid.h>
 
+#include <glm/gtc/constants.hpp>
+
 #include <cassert>
 
 namespace gz::core
@@ -38,17 +40,26 @@ GeoJson GeoJsonGenerator::GenerateFeatures(const std::vector<GeoPointCloud>& poi
 
 GeoJson GeoJsonGenerator::GenerateCoordinates(const GeoPointCloud& pointCloud)
 {
+    using namespace Eigen;
+
     auto&& pc = pointCloud.points;
     if (!pc)
         return {};
 
-    GeoJson coordinates;
+    auto coordinates = GeoJson{};
+    auto [cx, cy, cz] = pointCloud.center;
+    auto [longitude, latitude, _] = pointCloud.geoCoord;
 
     for (auto&& point : pc->points)
     {
-        auto [cx, cy, cz] = pointCloud.center;
-        auto cartesianPoint = glm::dvec3(cx + point.x, cy + point.y, cz + point.z);
-        auto cartographicPoint = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(cartesianPoint);
+        auto p = Vector4d(point.x, point.y, point.z, 1.0);
+        auto transform = Affine3d::Identity();
+        transform.translate(Vector3d(cx, cy, cz));
+        transform.rotate(AngleAxisd(longitude, Vector3d::UnitX()));
+        transform.rotate(AngleAxisd(-glm::pi<double>() - latitude, Vector3d::UnitY()));
+        p = transform * p;
+
+        auto cartographicPoint = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(glm::dvec3(p.x(), p.y(), p.z()));
         if (cartographicPoint.has_value())
         {
             auto [lon, lat, height] = *cartographicPoint;

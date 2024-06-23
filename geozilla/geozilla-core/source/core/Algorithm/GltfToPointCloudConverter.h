@@ -10,12 +10,13 @@ namespace gz::core
 class GltfToPointCloudConverter
 {
 public:
-    static GeoPointCloud Convert(const GeoModel& model, bool normalize);
+    static GeoPointCloud Convert(const GeoModel& model);
 
 private:
     static PointCloud::Ptr ExtractPoints(const GeoModel& model);
     static glm::dvec3 ExtractCenter(const GeoModel& model);
-    static PointCloud::Ptr Normalize(const PointCloud::Ptr& points, const glm::dvec3& center);
+    static CesiumGeospatial::Cartographic ComputeGeoCoord(const PointCloud::Ptr& points, const glm::dvec3& center);
+    static PointCloud::Ptr Normalize(const PointCloud::Ptr& points, const CesiumGeospatial::Cartographic& geoCoord);
     static const CesiumGltf::Accessor* GetAccessor(const GeoModel& model, const std::unordered_map<std::string, int32_t>& attributes, const std::string& name);
     static const std::byte* GetAttributeBuffer(const GeoModel& model, const CesiumGltf::Accessor* accessor);
     static const CesiumGltf::TextureInfo* GetTextureInfo(const GeoModel& model, int32_t materialIndex);

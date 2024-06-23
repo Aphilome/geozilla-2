@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CesiumGltf/Model.h>
+#include <CesiumGeospatial/Cartographic.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -23,6 +24,7 @@ struct GeoPointCloud
 {
     PointCloud::Ptr points;
     glm::dvec3 center;
+    CesiumGeospatial::Cartographic geoCoord = { 0.0, 0.0, 0.0 };
 };
 
 } // namespace gz::core
