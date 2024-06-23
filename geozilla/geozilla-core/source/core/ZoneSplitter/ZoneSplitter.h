@@ -8,8 +8,6 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-//typedef pcl::PointXYZRGB PointType;
-
 namespace gz::core
 {
 
@@ -32,12 +30,12 @@ struct SplitClouds {
 
 class ZoneSplitter {
 public:
-    SplitClouds SplitToClouds(PointCloud::Ptr originalCloud);
+    SplitClouds SplitToClouds(PointCloud::Ptr originalCloud, bool visualize);
 private:
-    void VisualizeCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string title);
+    void VisualizeCloud(PointCloud::Ptr cloud, std::string title, bool visualize);
     std::vector<PointCloud::Ptr> CreateHorizontClouds(PointCloud::Ptr horizontCloud);
     std::vector<PointCloud::Ptr> CreateHorizontCutting(PointCloud::Ptr cloud);
-    std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> CreateObstaclesObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    std::vector<PointCloud::Ptr> CreateObstaclesObjects(PointCloud::Ptr cloud);
 };
 
 } // namespace gz::core

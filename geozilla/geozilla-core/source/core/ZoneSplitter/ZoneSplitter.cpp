@@ -110,11 +110,11 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontClouds(PointCloud::Ptr 
     return planes;
 }
 
-SplitClouds ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud) {
+SplitClouds ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud, bool visualize) {
     auto planeClouds = std::vector<PointCloud::Ptr>();
     auto objectClouds = std::vector<PointCloud::Ptr>();
 
-    VisualizeCloud(originalCloud, "originalCloud");
+    VisualizeCloud(originalCloud, "originalCloud", visualize);
 
     auto cutting = CreateHorizontCutting(originalCloud);
     auto cuttedHorizontCloud = cutting[0];
@@ -129,9 +129,9 @@ SplitClouds ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud) {
         objectClouds.push_back(i);
 
     for (auto& i : planeClouds)
-        VisualizeCloud(i, "plane");
+        VisualizeCloud(i, "plane", visualize);
     for (auto& i : objectClouds)
-        VisualizeCloud(i, "object");
+        VisualizeCloud(i, "object", visualize);
 
     return { planeClouds, objectClouds };
 }
@@ -178,7 +178,10 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontCutting(PointCloud::Ptr
     return { horizontal_plane, withoutHorizontalCloud };
 }
 
-void ZoneSplitter::VisualizeCloud(PointCloud::Ptr cloud, std::string title) {
+void ZoneSplitter::VisualizeCloud(PointCloud::Ptr cloud, std::string title, bool visualize) {
+    if (!visualize)
+        return;
+
     pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer(title));
 
     using namespace std::chrono_literals;

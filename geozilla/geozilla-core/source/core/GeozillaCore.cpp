@@ -59,14 +59,14 @@ GeoJson GenerateGeoJson(const std::vector<GeoPointCloud>& pointClouds, const std
 
 } // namespace
 
-std::string GenerateGeoJson(const std::filesystem::path& path)
+std::string GenerateGeoJson(const std::filesystem::path& path, bool visualize)
 {
     constexpr auto indent = 4;
     auto models = LoadGeoModels(path);
     auto pointCloud = ConvertToPointCloud(models);
 
     ZoneSplitter splitter;
-    auto clouds = splitter.SplitToClouds(pointCloud.points);
+    auto clouds = splitter.SplitToClouds(pointCloud.points, visualize);
 
     auto hullClouds = GenerateConcaveHulls({ pointCloud });
     auto geoJson = GenerateGeoJson(hullClouds, path);
@@ -78,7 +78,7 @@ const char* GenerateGeoJsonBuffer(const char* path)
     if (!path)
         return nullptr;
 
-    auto geoJson = GenerateGeoJson(path);
+    auto geoJson = GenerateGeoJson(path, false);
     const auto size = geoJson.size();
     auto* buffer = new char[size + 1];
     buffer[size] = '\0';
