@@ -7,7 +7,7 @@
 #include <pcl/common/common.h>
 #include <pcl/common/transforms.h>
 
-#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/scalar_constants.hpp>
 
 #include <cassert>
 #include <numeric>
@@ -15,15 +15,13 @@
 namespace gz::core
 {
 
-GeoPointCloud GltfToPointCloudConverter::Convert(const GeoModel& model, bool normalize)
+GeoPointCloud GltfToPointCloudConverter::Convert(const GeoModel& model)
 {
+    auto points = ExtractPoints(model);
     auto pointCloud = GeoPointCloud{};
     pointCloud.center = ExtractCenter(model);
-    pointCloud.points = ExtractPoints(model);
-    if (normalize)
-    {
-        pointCloud.points = Normalize(pointCloud.points, pointCloud.center);
-    }
+    pointCloud.geoCoord = ComputeGeoCoord(points, pointCloud.center);
+    pointCloud.points = Normalize(points, pointCloud.geoCoord);
     return pointCloud;
 }
 
@@ -88,10 +86,10 @@ glm::dvec3 GltfToPointCloudConverter::ExtractCenter(const GeoModel& model)
     return { cesiumRTC->center[0], cesiumRTC->center[1], cesiumRTC->center[2] };
 }
 
-PointCloud::Ptr GltfToPointCloudConverter::Normalize(const PointCloud::Ptr& points, const glm::dvec3& center)
+CesiumGeospatial::Cartographic GltfToPointCloudConverter::ComputeGeoCoord(const PointCloud::Ptr& points, const glm::dvec3& center)
 {
     if (!points)
-        return nullptr;
+        return { 0.0, 0.0, 0.0 };
 
     Point minPoint;
     Point maxPoint;
@@ -105,13 +103,17 @@ PointCloud::Ptr GltfToPointCloudConverter::Normalize(const PointCloud::Ptr& poin
 
     auto cartographicPoint = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(cartesianPoint);
     if (!cartographicPoint)
-        return nullptr;
+        return { 0.0, 0.0, 0.0 };
 
-    const auto longitude = static_cast<float>(cartographicPoint->longitude);
-    const auto latitude = static_cast<float>(cartographicPoint->latitude);
-    auto transform = Eigen::Affine3f::Identity();
-    transform.rotate(Eigen::AngleAxisf(-longitude, Eigen::Vector3f::UnitX()));
-    transform.rotate(Eigen::AngleAxisf(glm::pi<float>() + latitude, Eigen::Vector3f::UnitY()));
+    return *cartographicPoint;
+}
+
+PointCloud::Ptr GltfToPointCloudConverter::Normalize(const PointCloud::Ptr& points, const CesiumGeospatial::Cartographic& geoCoord)
+{
+    using namespace Eigen;
+    auto transform = Affine3d::Identity();
+    transform.rotate(AngleAxisd(-geoCoord.longitude, Vector3d::UnitX()));
+    transform.rotate(AngleAxisd(glm::pi<double>() + geoCoord.latitude, Vector3d::UnitY()));
 
     auto transformedPointCloud = std::make_shared<PointCloud>();
     pcl::transformPointCloud(*points, *transformedPointCloud, transform);

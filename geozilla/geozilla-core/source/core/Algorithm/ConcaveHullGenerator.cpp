@@ -1,28 +1,38 @@
 #include "ConcaveHullGenerator.h"
 
-#include <pcl/filters/voxel_grid.h>
+#include <pcl/common/common.h>
+#include <pcl/surface/convex_hull.h>
+#include <pcl/filters/project_inliers.h>
 
 namespace gz::core
 {
 
 GeoPointCloud ConcaveHullGenerator::Generate(const GeoPointCloud& pointCloud)
 {
-    auto filteredPointCloud = std::make_shared<PointCloud>();
-    auto voxelGrid = pcl::VoxelGrid<Point>();
-    voxelGrid.setInputCloud(pointCloud.points);
-    voxelGrid.setLeafSize(2.0f, 2.0f, 2.0f);
-    voxelGrid.filter(*filteredPointCloud);
+    Point minPoint;
+    Point maxPoint;
+    pcl::getMinMax3D(*pointCloud.points, minPoint, maxPoint);
 
-    auto hullCloud = std::make_shared<PointCloud>();
-    pcl::ConcaveHull<Point> concaveHull;
-    concaveHull.setInputCloud(filteredPointCloud);
-    concaveHull.setAlpha(0.3);
-    concaveHull.setDimension(2);
-    concaveHull.reconstruct(*hullCloud);
+    auto coefficients = std::make_shared<pcl::ModelCoefficients>();
+    coefficients->values = { 0.0f, 1.0f, 0.0f, std::midpoint(minPoint.y, maxPoint.y) };
+
+    auto cloudProjected = std::make_shared<PointCloud>();
+    auto projection = pcl::ProjectInliers<Point>();
+    projection.setModelType(pcl::SACMODEL_PLANE);
+    projection.setInputCloud(pointCloud.points);
+    projection.setModelCoefficients(coefficients);
+    projection.filter(*cloudProjected);
+
+    auto cloudHull = std::make_shared<PointCloud>();
+    pcl::ConcaveHull<Point> hull;
+    hull.setInputCloud(cloudProjected);
+    hull.setAlpha(10.0);
+    hull.reconstruct(*cloudHull);
 
     return GeoPointCloud{
-        std::move(hullCloud),
-        pointCloud.center
+        std::move(cloudHull),
+        pointCloud.center,
+        pointCloud.geoCoord
     };
 }
 

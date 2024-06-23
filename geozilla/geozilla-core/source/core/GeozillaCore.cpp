@@ -32,7 +32,7 @@ GeoPointCloud ConvertToPointCloud(const std::vector<GeoModel>& models)
         return {};
 
     assert((models.size() == 1) && "Multi models is not supported");
-    return GltfToPointCloudConverter::Convert(models.front(), true);
+    return GltfToPointCloudConverter::Convert(models.front());
 }
 
 std::vector<GeoPointCloud> GenerateConcaveHulls(const std::vector<GeoPointCloud>& pointClouds)
