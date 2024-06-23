@@ -15,7 +15,7 @@ namespace gz::core
 
 using GeoModel = CesiumGltf::Model;
 using GeoJson = nlohmann::ordered_json;
-using Point = pcl::PointXYZ;
+using Point = pcl::PointXYZRGB;
 using ConcaveHull = pcl::ConcaveHull<Point>;
 using PointCloud = pcl::PointCloud<Point>;
 

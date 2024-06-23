@@ -1,72 +1,167 @@
 ﻿#include "ZoneSplitter.h"
 
+//#include <nlohmann/json.hpp>
+
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
-//#include <nlohmann/json.hpp>
-//#include <opencv2/opencv.hpp>
+#include <pcl/visualization/cloud_viewer.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/common/common.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/filters/passthrough.h>
+
+#include <algorithm>
+#include <thread>
 
 
-std::string ZoneSplitter::SplitToZones(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud) {
-    //std::vector<Zone> zones = Split(pointCloud);
-    //cv::Mat image = pointCloudToImage(pointCloud);
-    //
-    //for (auto& zone : zones) {
-    //    zone.type = ClassifyZone(zone);
-    //}
-    //std::string geojson = CreateGeoJson(zones);
-    //
-    //return geojson;
-	return {};
+std::string ZoneSplitter::GenerateGeoJson(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud) {
+    auto clouds = SplitToClouds(originalCloud);
+
+
+    return "{}";
 }
 
-std::vector<Zone> ZoneSplitter::Split(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud) {
-    //std::vector<Zone> zones;
 
-    //pcl::SACSegmentation<pcl::PointXYZRGB> seg;
-    //pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-    //pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-    //pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+std::vector<Zone> ZoneSplitter::SplitToClouds(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud) {
+    auto zones = std::vector<Zone>();
+    zones.push_back(Zone{ "remove me, please", originalCloud });
 
-    //seg.setOptimizeCoefficients(true);
-    //seg.setModelType(pcl::SACMODEL_PLANE);
-    //seg.setMethodType(pcl::SAC_RANSAC);
-    //seg.setMaxIterations(1000);
-    //seg.setDistanceThreshold(0.01);
+    
+    auto horizontCloud = CreateHorizontCloud(originalCloud);
 
-    //int i = 0;
-    //while (pointCloud->points.size() > 0.3 * pointCloud->points.size()) {
-    //    seg.setInputCloud(pointCloud);
-    //    seg.segment(*inliers, *coefficients);
-    //
-    //    if (inliers->indices.size() == 0) {
-    //        std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
-    //        break;
-    //    }
-    //
-    //    Zone zone;
-    //    zone.type = "undefined"; // Замените на логику классификации типа
-    //
-    //    for (const auto& idx : inliers->indices) {
-    //        zone.points.push_back(pointCloud->points[idx]);
-    //    }
-    //
-    //    zones.push_back(zone);
-    //
-    //    extract.setInputCloud(pointCloud);
-    //    extract.setIndices(inliers);
-    //    extract.setNegative(true);
-    //    extract.filter(*pointCloud);
-    //    i++;
-    //}
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr grassCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr roadCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    for (const auto& point : *horizontCloud) {
+        if (IsGreenMore(point))
+            grassCloud->points.push_back(point);
+        else
+            roadCloud->points.push_back(point);
+    }
+    zones.push_back(Zone{ "grass", grassCloud });
+    zones.push_back(Zone{ "road", roadCloud });
+    
+    
 
-    //return zones;
-	return {};
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr whithoutHorizontCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    pass.setInputCloud(originalCloud);
+    pass.setFilterFieldName("y");
+    pass.setFilterLimits(0.0, 10.0);
+    //pass.setNegative (true);
+    pass.filter(*whithoutHorizontCloud);
+
+
+
+    //zones.push_back(Zone{ "test", whithoutHorizontCloud });
+
+    auto obstacles = CreateObstaclesObjects(originalCloud);
+    for (auto& o : obstacles)
+        zones.push_back(Zone{ "obstacles", o });
+
+
+    for (auto& z : zones)
+        VisualizeCloud(z.cloud, z.type);
+        
+
+    return zones;
 }
 
-std::string ZoneSplitter::ClassifyZone(const Zone& sector) {
+
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ZoneSplitter::CreateHorizontCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
+    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
+    ne.setInputCloud(cloud);
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
+    ne.setSearchMethod(tree);
+    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
+    ne.setRadiusSearch(3.3);
+    ne.compute(*cloud_normals);
+
+    pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg;
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr horizontal_planes(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    seg.setOptimizeCoefficients(true);
+    seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
+    seg.setNormalDistanceWeight(0.9);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setMaxIterations(1000);
+    seg.setDistanceThreshold(0.3);
+    seg.setInputCloud(cloud);
+    seg.setInputNormals(cloud_normals);
+    seg.segment(*inliers, *coefficients);
+
+    if (inliers->indices.size() == 0) {
+        std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
+    }
+
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud(cloud);
+    extract.setIndices(inliers);
+    extract.setNegative(false);
+    extract.filter(*horizontal_planes);
+
+    return horizontal_planes;
+}
+
+
+bool ZoneSplitter::IsGreenMore(const pcl::PointXYZRGB& point) {
+    return point.g > point.r && point.g > point.b;
+}
+
+
+void ZoneSplitter::VisualizeCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string title) {
+    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer(title));
+
+    using namespace std::chrono_literals;
+
+    viewer->setBackgroundColor(0, 0, 20);
+    viewer->addPointCloud<pcl::PointXYZRGB>(cloud, "1");
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "1");
+    viewer->addCoordinateSystem(1.0);
+    viewer->initCameraParameters();
+
+    while (!viewer->wasStopped())
+    {
+        viewer->spinOnce(100);
+    }
+}
+
+
+std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> ZoneSplitter::CreateObstaclesObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
+    auto obstacles = std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>();
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud(cloud);
+
+    std::vector<pcl::PointIndices> cluster_indices;
+    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
+    ec.setClusterTolerance(1.2); // 2 meters
+    ec.setMinClusterSize(100);
+    ec.setMaxClusterSize(25000);
+    ec.setSearchMethod(tree);
+    ec.setInputCloud(cloud);
+    ec.extract(cluster_indices);
+
+    for (const auto& indices : cluster_indices) {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
+        for (const auto& idx : indices.indices) {
+            cloud_cluster->points.push_back(cloud->points[idx]);
+        }
+        cloud_cluster->width = cloud_cluster->points.size();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
+
+        obstacles.push_back(cloud_cluster);
+    }
+
+    return obstacles;
+}
+
+//std::string ZoneSplitter::ClassifyZone(const Zone& sector) {
     //cv::Mat image = ZoneToImage(cloud);
     //cv::imwrite("output_image.png", image);
 
@@ -90,10 +185,10 @@ std::string ZoneSplitter::ClassifyZone(const Zone& sector) {
     //    return "building";
     //}
 
-    return "unknown";
-}
+//  return "unknown";
+//}
 
-std::string ZoneSplitter::CreateGeoJson(const std::vector<Zone>& zones) {
+//std::string ZoneSplitter::CreateGeoJson(const std::vector<Zone>& zones) {
     //json geojson;
     //geojson["type"] = "FeatureCollection";
     //geojson["features"] = json::array();
@@ -118,8 +213,8 @@ std::string ZoneSplitter::CreateGeoJson(const std::vector<Zone>& zones) {
     //}
 
     //return geojson.dump(4);
-	return {};
-}
+//	return {};
+//}
 
 
 //cv::Mat zoneToImage(Zone& zone) {

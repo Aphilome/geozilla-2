@@ -6,25 +6,27 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-//#include <opencv2/opencv.hpp>
-
 typedef pcl::PointXYZRGB PointType;
 
+// grass
+// road
+// sidewalk
+// building
+// obstacles
+// default (in front, all other)
 struct Zone {
     std::string type;
-    std::vector<pcl::PointXYZRGB> points;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
 };
 
 class ZoneSplitter {
 public:
-    std::string SplitToZones(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud);
-
+    std::string GenerateGeoJson(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud);
 private:
-    // pcl
-    std::vector<Zone> Split(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud);
-    std::string ClassifyZone(const Zone& sector);
-    std::string CreateGeoJson(const std::vector<Zone>& zones);
+    void VisualizeCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string title);
+    std::vector<Zone> SplitToClouds(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud);
+    bool IsGreenMore(const pcl::PointXYZRGB& point);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr CreateHorizontCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> CreateObstaclesObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 
-    // open-cv
-    //cv::Mat PointCloudToImage(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
 };
