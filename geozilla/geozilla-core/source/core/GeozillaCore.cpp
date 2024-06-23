@@ -1,4 +1,5 @@
 #include "GeozillaCore.h"
+#include "ZoneSplitter/ZoneSplitter.h"
 
 #include <Logger/ConsoleLogger.h>
 #include <Loader/GeoModelLoader.h>
@@ -63,6 +64,10 @@ std::string GenerateGeoJson(const std::filesystem::path& path)
     constexpr auto indent = 4;
     auto models = LoadGeoModels(path);
     auto pointCloud = ConvertToPointCloud(models);
+
+    ZoneSplitter splitter;
+    auto zones = splitter.SplitToClouds(pointCloud.points);
+
     auto hullClouds = GenerateConcaveHulls({ pointCloud });
     auto geoJson = GenerateGeoJson(hullClouds, path);
     return geoJson.dump(indent);

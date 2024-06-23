@@ -26,5 +26,3 @@ export function Tile(props) {
     </group>
   )
 }
-
-//useGLTF.preload('http://localhost:5045/tile')

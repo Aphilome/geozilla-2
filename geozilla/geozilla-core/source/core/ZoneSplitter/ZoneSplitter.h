@@ -1,12 +1,17 @@
 #pragma once
 
+#include "GeoTypes.h"
+
 #include <string>
 #include <vector>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-typedef pcl::PointXYZRGB PointType;
+//typedef pcl::PointXYZRGB PointType;
+
+namespace gz::core
+{
 
 // grass
 // road
@@ -21,12 +26,13 @@ struct Zone {
 
 class ZoneSplitter {
 public:
-    std::string GenerateGeoJson(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud);
+    std::vector<Zone> SplitToClouds(PointCloud::Ptr originalCloud);
 private:
     void VisualizeCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string title);
-    std::vector<Zone> SplitToClouds(pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud);
     bool IsGreenMore(const pcl::PointXYZRGB& point);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr CreateHorizontCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    std::vector<PointCloud::Ptr> CreateHorizontClouds(PointCloud::Ptr horizontCloud);
+    std::vector<PointCloud::Ptr> CreateHorizontSplitting(PointCloud::Ptr cloud);
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> CreateObstaclesObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-
 };
+
+} // namespace gz::core
