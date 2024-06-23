@@ -1,13 +1,13 @@
 import React, {useEffect, useRef} from "react";
 import {LeafletEvent, Map} from "leaflet";
-import {FeatureCollection} from "geojson";
 import FigureLayers from "../types/FigureLayers";
 import {onCreateHandler} from "../utils/MapEventHandlers";
+import FeatureCollectionExt from "../types/FeatureCollectionExt";
 
 interface MapEditorProps {
     layersRef: React.MutableRefObject<FigureLayers>;
-    geoJsonViewRef: React.MutableRefObject<FeatureCollection>;
-    setGeoJsonView: (geoJson: FeatureCollection) => void;
+    geoJsonViewRef: React.MutableRefObject<FeatureCollectionExt>;
+    setGeoJsonView: (geoJson: FeatureCollectionExt) => void;
     activeLayer: string;
     nextFeatureIdRef: React.MutableRefObject<number>;
     mapRef: React.MutableRefObject<Map | undefined>;

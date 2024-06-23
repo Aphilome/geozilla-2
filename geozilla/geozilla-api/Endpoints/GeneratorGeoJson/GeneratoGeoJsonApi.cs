@@ -35,6 +35,7 @@ public static class GeneratoGeoJsonApi
         inputStream.CopyTo(outputFileStream);
         inputStream.Seek(0, SeekOrigin.Begin);
 
+
         var destPath = Path.Combine(TempUploadedFileDirectory, "tile.glb");
         var b3dm = B3dmReader.ReadB3dm(inputStream);
         var stream = new MemoryStream(b3dm.GlbData);
@@ -49,7 +50,8 @@ public static class GeneratoGeoJsonApi
     {
         var path = Path.Combine(TempUploadedFileDirectory, "tile.glb");
         var fullPath = Path.GetFullPath(path);
-
+        if (!File.Exists(fullPath))
+            return Results.Ok();
         var mimeType = "model/gltf-binary";
         return Results.File(fullPath, contentType: mimeType);
     }

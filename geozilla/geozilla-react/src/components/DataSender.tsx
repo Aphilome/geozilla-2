@@ -2,10 +2,10 @@ import React, {useState} from 'react';
 import {Button, Container, Snackbar} from "@mui/material";
 import FileUploader from "./FileUploader";
 import {GenerateGeoJsonApi} from "../api/GenerateGeoJsonApi";
-import {FeatureCollection } from "geojson";
+import FeatureCollectionExt from "../types/FeatureCollectionExt";
 
 interface DataSenderProps {
-    setGeoJson: (geoJson: FeatureCollection) => void;
+    setGeoJson: (geoJson: FeatureCollectionExt) => void;
 }
 
 const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
