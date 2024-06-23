@@ -19,19 +19,24 @@ namespace gz::core
 // building
 // obstacles
 // default (in front, all other)
-struct Zone {
-    std::string type;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+
+//struct Zone {
+//    std::string type;
+//    PointCloud::Ptr cloud;
+//};
+
+struct SplitClouds {
+    std::vector<PointCloud::Ptr> planeClouds;
+    std::vector<PointCloud::Ptr> objectClouds;
 };
 
 class ZoneSplitter {
 public:
-    std::vector<Zone> SplitToClouds(PointCloud::Ptr originalCloud);
+    SplitClouds SplitToClouds(PointCloud::Ptr originalCloud);
 private:
     void VisualizeCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string title);
-    bool IsGreenMore(const pcl::PointXYZRGB& point);
     std::vector<PointCloud::Ptr> CreateHorizontClouds(PointCloud::Ptr horizontCloud);
-    std::vector<PointCloud::Ptr> CreateHorizontSplitting(PointCloud::Ptr cloud);
+    std::vector<PointCloud::Ptr> CreateHorizontCutting(PointCloud::Ptr cloud);
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> CreateObstaclesObjects(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 };
 

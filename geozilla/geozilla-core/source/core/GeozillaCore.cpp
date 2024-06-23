@@ -66,7 +66,7 @@ std::string GenerateGeoJson(const std::filesystem::path& path)
     auto pointCloud = ConvertToPointCloud(models);
 
     ZoneSplitter splitter;
-    auto zones = splitter.SplitToClouds(pointCloud.points);
+    auto clouds = splitter.SplitToClouds(pointCloud.points);
 
     auto hullClouds = GenerateConcaveHulls({ pointCloud });
     auto geoJson = GenerateGeoJson(hullClouds, path);

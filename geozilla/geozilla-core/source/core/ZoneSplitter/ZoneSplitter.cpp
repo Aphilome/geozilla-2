@@ -60,13 +60,22 @@ PointCloud::Ptr CreateHorizontCloud(PointCloud::Ptr cuttedHorizontCloud) {
 std::vector<PointCloud::Ptr> CreatePlanes(PointCloud::Ptr horizontCloud) {
     std::vector<PointCloud::Ptr> clouds;
 
-    pcl::search::Search <Point>::Ptr tree(new pcl::search::KdTree<Point>);
+    PointCloud::Ptr filteredCloud(new PointCloud);
+    
+    // filtrate
+    pcl::StatisticalOutlierRemoval<Point> sor;
+    sor.setInputCloud(horizontCloud);
+    sor.setMeanK(50); // Number of neighbors to analyze for each point
+    sor.setStddevMulThresh(1.0); // Standard deviation threshold
+    sor.filter(*filteredCloud);
 
+    // segmentation
+    pcl::search::Search <Point>::Ptr tree(new pcl::search::KdTree<Point>);
     pcl::IndicesPtr indices(new std::vector <int>);
-    pcl::removeNaNFromPointCloud(*horizontCloud, *indices);
+    pcl::removeNaNFromPointCloud(*filteredCloud, *indices);
 
     pcl::RegionGrowingRGB<Point> reg;
-    reg.setInputCloud(horizontCloud);
+    reg.setInputCloud(filteredCloud);
     reg.setIndices(indices);
     reg.setSearchMethod(tree);
 
@@ -77,23 +86,19 @@ std::vector<PointCloud::Ptr> CreatePlanes(PointCloud::Ptr horizontCloud) {
 
     std::vector <pcl::PointIndices> clusters;
     reg.extract(clusters);
+    //PointCloud::Ptr colored_cloud = reg.getColoredCloud();
 
-    PointCloud::Ptr colored_cloud = reg.getColoredCloud();
-    
+    for (const auto& indices : clusters) {
+        PointCloud::Ptr cloud_cluster(new PointCloud);
+        for (const auto& idx : indices.indices) {
+            cloud_cluster->points.push_back(filteredCloud->points[idx]);
+        }
+        cloud_cluster->width = cloud_cluster->points.size();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
 
-    clouds.push_back(colored_cloud);
-
-    
-    PointCloud::Ptr filteredCloud(new PointCloud);
-
-    pcl::StatisticalOutlierRemoval<Point> sor;
-    sor.setInputCloud(colored_cloud);
-    sor.setMeanK(50); // Number of neighbors to analyze for each point
-    sor.setStddevMulThresh(1.0); // Standard deviation threshold
-    sor.filter(*filteredCloud);
-
-    clouds.push_back(filteredCloud);
-
+        clouds.push_back(cloud_cluster);
+    }
 
     return clouds;
 }
@@ -105,34 +110,33 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontClouds(PointCloud::Ptr 
     return planes;
 }
 
-std::vector<Zone> ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud) {
-    auto zones = std::vector<Zone>();
-    zones.push_back(Zone{ "remove me, please", originalCloud });
+SplitClouds ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud) {
+    auto planeClouds = std::vector<PointCloud::Ptr>();
+    auto objectClouds = std::vector<PointCloud::Ptr>();
 
-    
-    auto cutting = CreateHorizontSplitting(originalCloud);
+    VisualizeCloud(originalCloud, "originalCloud");
+
+    auto cutting = CreateHorizontCutting(originalCloud);
     auto cuttedHorizontCloud = cutting[0];
     auto cuttedObjectsCloud = cutting[1];
 
-
     auto planes = CreateHorizontClouds(cuttedHorizontCloud);
     for (auto& i : planes)
-        zones.push_back({ "plane", i });
+        planeClouds.push_back(i);
 
+    auto objects = CreateObstaclesObjects(cuttedObjectsCloud);
+    for (auto& i : objects)
+        objectClouds.push_back(i);
 
-    //auto obstacles = CreateObstaclesObjects(cuttedObjectsCloud);
-    //for (auto& i : obstacles)
-    //    zones.push_back({ "obstacle", i});
+    for (auto& i : planeClouds)
+        VisualizeCloud(i, "plane");
+    for (auto& i : objectClouds)
+        VisualizeCloud(i, "object");
 
-
-    for (auto& z : zones)
-        VisualizeCloud(z.cloud, z.type);
-        
-
-    return zones;
+    return { planeClouds, objectClouds };
 }
 
-std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontSplitting(PointCloud::Ptr cloud) {
+std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontCutting(PointCloud::Ptr cloud) {
     pcl::PointXYZRGB minPt, maxPt;
     pcl::getMinMax3D(*cloud, minPt, maxPt);
 
@@ -172,47 +176,7 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontSplitting(PointCloud::P
     pass.filter(*withoutHorizontalCloud);
 
     return { horizontal_plane, withoutHorizontalCloud };
-
-
-    /*
-
-    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
-    ne.setInputCloud(cloud);
-    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
-    ne.setSearchMethod(tree);
-    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
-    ne.setRadiusSearch(3.3);
-    ne.compute(*cloud_normals);
-
-    pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg;
-    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr horizontal_planes(new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    seg.setOptimizeCoefficients(true);
-    seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
-    seg.setNormalDistanceWeight(0.9);
-    seg.setMethodType(pcl::SAC_RANSAC);
-    seg.setMaxIterations(1000);
-    seg.setDistanceThreshold(0.3);
-    seg.setInputCloud(cloud);
-    seg.setInputNormals(cloud_normals);
-    seg.segment(*inliers, *coefficients);
-
-    if (inliers->indices.size() == 0) {
-        std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
-    }
-
-    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-    extract.setInputCloud(cloud);
-    extract.setIndices(inliers);
-    extract.setNegative(false);
-    extract.filter(*horizontal_planes);
-    */
-
-    //return horizontal_plane;
 }
-
 
 void ZoneSplitter::VisualizeCloud(PointCloud::Ptr cloud, std::string title) {
     pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer(title));
