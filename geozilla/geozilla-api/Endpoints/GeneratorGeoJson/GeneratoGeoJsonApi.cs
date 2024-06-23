@@ -1,4 +1,5 @@
-﻿using geozilla_api.Endpoints.GeneratorGeoJson.Requests;
+﻿using B3dmCore;
+using geozilla_api.Endpoints.GeneratorGeoJson.Requests;
 using geozilla_bl.Services.Generation.Abstract;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,20 +19,39 @@ public static class GeneratoGeoJsonApi
             .WithName("GenerateGeoJson").WithOpenApi()
             .DisableAntiforgery();
 
+        builder.MapGet("tile", GetTile)
+            .WithName("GetTile").WithOpenApi()
+            .CacheOutput( i => i.NoCache());
+
         return builder;
     }
 
     private static async Task<string> GenerateGeoJson([FromForm] GenerateGeoJsonRequest request, IGeoJsonService service)
     {
         var path = Path.Combine(TempUploadedFileDirectory, request.File.FileName);
-        using (var outputFileStream = new FileStream(path, FileMode.Create))
-        {
-            request.File.OpenReadStream().CopyTo(outputFileStream);
-        }
+        using var outputFileStream = new FileStream(path, FileMode.Create);
+
+        var inputStream = request.File.OpenReadStream();
+        inputStream.CopyTo(outputFileStream);
+        inputStream.Seek(0, SeekOrigin.Begin);
+
+        var destPath = Path.Combine(TempUploadedFileDirectory, "tile.glb");
+        var b3dm = B3dmReader.ReadB3dm(inputStream);
+        var stream = new MemoryStream(b3dm.GlbData);
+        File.WriteAllBytes(destPath, stream.ToArray());
 
         var result = await service.Generate(Path.GetFullPath(path));
         result = TestData.GeoJson;
         return result;
+    }
+
+    private static async Task<IResult> GetTile()
+    {
+        var path = Path.Combine(TempUploadedFileDirectory, "tile.glb");
+        var fullPath = Path.GetFullPath(path);
+
+        var mimeType = "model/gltf-binary";
+        return Results.File(fullPath, contentType: mimeType);
     }
 }
 

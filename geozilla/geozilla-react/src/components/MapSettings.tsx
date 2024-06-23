@@ -7,15 +7,17 @@ interface MapSettingsProps {
     layerControlRef:  React.MutableRefObject<L.Control.Layers | null>;
     layersRef:  React.MutableRefObject<FigureLayers>;
     mapRef: React.MutableRefObject<Map | undefined>;
+    setMapInitialized: (flag: boolean) => void;
 }
 
-const MapSettings: React.FC<MapSettingsProps> = ({ layerControlRef, layersRef, mapRef}) => {
+const MapSettings: React.FC<MapSettingsProps> = ({ layerControlRef, layersRef, mapRef, setMapInitialized}) => {
     console.log('MapSettings component');
     const map = useMap();
 
     useEffect(() => {
         if (!mapRef.current){
             mapRef.current = map;
+            setMapInitialized(true);
         }
         mapRef.current.pm.addControls({
             position: 'topleft',

@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent } from 'react';
 import { Button, Snackbar } from '@mui/material';
 
 interface FileUploaderProps {
+    uploadedFile: File | null;
     setUploadedFile: React.Dispatch<React.SetStateAction<File | null>>;
 }
 
@@ -26,8 +27,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({setUploadedFile}) => {
                 onChange={handleFileUpload}
             />
             <label htmlFor="raised-button-file">
-                <Button variant="contained" component="span">
-                    Upload B3DM File
+                <Button variant="contained" component="span" style={{ height: '50px', width: '250px'}}>
+                    Вырбрать b3dm
                 </Button>
             </label>
             <Snackbar
