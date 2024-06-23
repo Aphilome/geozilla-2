@@ -14,7 +14,7 @@ GeoPointCloud ConcaveHullGenerator::Generate(const GeoPointCloud& pointCloud)
     pcl::getMinMax3D(*pointCloud.points, minPoint, maxPoint);
 
     auto coefficients = std::make_shared<pcl::ModelCoefficients>();
-    coefficients->values = { 0.0f, 1.0f, 0.0f, std::midpoint(minPoint.y, maxPoint.y) };
+    coefficients->values = { 0.0f, 1.0f, 0.0f, -maxPoint.y };
 
     auto cloudProjected = std::make_shared<PointCloud>();
     auto projection = pcl::ProjectInliers<Point>();
@@ -24,7 +24,7 @@ GeoPointCloud ConcaveHullGenerator::Generate(const GeoPointCloud& pointCloud)
     projection.filter(*cloudProjected);
 
     auto cloudHull = std::make_shared<PointCloud>();
-    pcl::ConcaveHull<Point> hull;
+    auto hull = pcl::ConcaveHull<Point>();
     hull.setInputCloud(cloudProjected);
     hull.setAlpha(10.0);
     hull.reconstruct(*cloudHull);
