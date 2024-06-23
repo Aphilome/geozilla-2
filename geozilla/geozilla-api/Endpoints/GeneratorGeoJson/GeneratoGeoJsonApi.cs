@@ -41,7 +41,7 @@ public static class GeneratoGeoJsonApi
         File.WriteAllBytes(destPath, stream.ToArray());
 
         var result = await service.Generate(Path.GetFullPath(path));
-        result = TestData.GeoJson;
+        //result = TestData.GeoJson;
         return result;
     }
 
