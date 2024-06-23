@@ -27,4 +27,4 @@ export function Tile(props) {
   )
 }
 
-useGLTF.preload('http://localhost:5045/tile')
+//useGLTF.preload('http://localhost:5045/tile')

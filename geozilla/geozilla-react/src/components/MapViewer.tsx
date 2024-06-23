@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {MapContainer, TileLayer} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L, {LeafletEvent, Map} from 'leaflet';
-import { Feature, FeatureCollection } from 'geojson';
+import { Feature } from 'geojson';
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import {Container, Grid} from "@mui/material";
@@ -16,10 +16,11 @@ import {onEditHandler, onRemoveHandler} from "../utils/MapEventHandlers";
 import Visualizer from "./Visualizer";
 import { Tile } from './Tile';
 import ActiveLayerSelector from "./ActiveLayerSelector";
+import FeatureCollectionExt from "../types/FeatureCollectionExt";
 
 interface MapViewerProps {
     zoom: number;
-    geoJson: FeatureCollection;
+    geoJson: FeatureCollectionExt;
 }
 
 const MapViewer: React.FC<MapViewerProps> = ({zoom, geoJson}) => {
@@ -35,11 +36,11 @@ const MapViewer: React.FC<MapViewerProps> = ({zoom, geoJson}) => {
     })
 
     const [activeLayer, setActiveLayer] = useState<string>('default');
-    const [geoJsonView, setGeoJsonView] = useState<FeatureCollection>({type: "FeatureCollection", features: []})
+    const [geoJsonView, setGeoJsonView] = useState<FeatureCollectionExt>({type: "FeatureCollection", name: '', features: []})
     const [mapInitialized, setMapInitialized] = useState(false);
 
     const layerControlRef = useRef<L.Control.Layers | null>(null);
-    const geoJsonViewRef = useRef<FeatureCollection>(geoJsonView);
+    const geoJsonViewRef = useRef<FeatureCollectionExt>(geoJsonView);
     const nextFeatureId = useRef(1);
     const mapRef = useRef<Map>();
 
@@ -72,7 +73,7 @@ const MapViewer: React.FC<MapViewerProps> = ({zoom, geoJson}) => {
             });
             featuresView.push(feature);
         });
-        setGeoJsonView({ type: geoJsonView.type, features: featuresView});
+        setGeoJsonView({ type: geoJson.type, name: geoJson.name, features: featuresView});
     }, []);
 
     useEffect(() => {

@@ -6,13 +6,13 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import MapViewer from './components/MapViewer';
 import DataSender from "./components/DataSender";
-import {FeatureCollection} from "geojson";
 import Visualizer from "./components/Visualizer";
 import {Elf} from "./components/Elf";
+import FeatureCollectionExt from "./types/FeatureCollectionExt";
 
 const App = () => {
     console.log("App component");
-    const [geoJson, setGeoJson] = useState<FeatureCollection | null>(null);
+    const [geoJson, setGeoJson] = useState<FeatureCollectionExt | null>(null);
 
     return (
         <div className="App">
