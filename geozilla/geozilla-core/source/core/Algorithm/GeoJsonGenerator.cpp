@@ -45,9 +45,10 @@ GeoJson GeoJsonGenerator::GenerateCoordinates(const PointCloud::Ptr& pointCloud,
     if (!pointCloud)
         return {};
 
-    auto coordinates = GeoJson{};
     auto [cx, cy, cz] = geoCoord.center;
     auto [longitude, latitude, _] = geoCoord.cartographic;
+    auto cartographics = std::vector<CesiumGeospatial::Cartographic>();
+    auto maxHeight = std::numeric_limits<double>::lowest();
 
     for (auto&& point : *pointCloud)
     {
@@ -61,9 +62,15 @@ GeoJson GeoJsonGenerator::GenerateCoordinates(const PointCloud::Ptr& pointCloud,
         auto cartographicPoint = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(glm::dvec3(p.x(), p.y(), p.z()));
         if (cartographicPoint.has_value())
         {
-            auto [lon, lat, height] = *cartographicPoint;
-            coordinates.push_back(GeoJson::array({ ToDegrees(lon), ToDegrees(lat), height }));
+            cartographics.emplace_back(*cartographicPoint);
+            maxHeight = std::max(maxHeight, cartographicPoint->height);
         }
+    }
+
+    auto coordinates = GeoJson{};
+    for (auto [lon, lat, _] : cartographics)
+    {
+        coordinates.push_back(GeoJson::array({ ToDegrees(lon), ToDegrees(lat), maxHeight }));
     }
 
     if (!coordinates.empty())

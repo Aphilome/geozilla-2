@@ -9,25 +9,35 @@ namespace gz::core
 
 PointCloud::Ptr ConcaveHullGenerator::Generate(const PointCloud::Ptr& pointCloud)
 {
-    Point minPoint;
-    Point maxPoint;
-    pcl::getMinMax3D(*pointCloud, minPoint, maxPoint);
-
-    auto coefficients = std::make_shared<pcl::ModelCoefficients>();
-    coefficients->values = { 0.0f, 1.0f, 0.0f, 0.0f };
-
     auto cloudProjected = std::make_shared<PointCloud>();
-    auto projection = pcl::ProjectInliers<Point>();
-    projection.setModelType(pcl::SACMODEL_PLANE);
-    projection.setInputCloud(pointCloud);
-    projection.setModelCoefficients(coefficients);
-    projection.filter(*cloudProjected);
+    for (auto&& p : *pointCloud)
+    {
+        cloudProjected->emplace_back(p.x, 0.0f, p.z, p.r, p.g, p.b);
+    }
 
     auto cloudHull = std::make_shared<PointCloud>();
     auto hull = pcl::ConcaveHull<Point>();
     hull.setInputCloud(cloudProjected);
     hull.setAlpha(10.0);
     hull.reconstruct(*cloudHull);
+
+    pcl::Indices indices(1);
+    std::vector<float> sqrDistances(1);
+    pcl::KdTreeFLANN<Point> kdTree;
+    kdTree.setInputCloud(cloudProjected);
+
+    for (auto&& p : *cloudHull)
+    {
+        int count = kdTree.nearestKSearch(p, 1, indices, sqrDistances);
+        if (count == 0)
+        {
+            assert(false);
+            continue;
+        }
+
+        p.y = (*pointCloud)[indices[0]].y;
+    }
+
     return cloudHull;
 }
 
