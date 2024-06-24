@@ -262,23 +262,23 @@ bool isGray(Point point) {
 }
 
 bool isLightGray(Point point) {
-    // 100 - 230
+    // 150 - 230
     return abs(point.g - point.r) < 30
         && abs(point.g - point.b) < 30
         && abs(point.r - point.b) < 30
-        && point.r > 100 && point.r < 230
-        && point.g > 100 && point.g < 230
-        && point.b > 100 && point.b < 230;
+        && point.r > 150 && point.r < 230
+        && point.g > 150 && point.g < 230
+        && point.b > 150 && point.b < 230;
 }
 
 bool isDarkGray(Point point) {
-    // 70 - 100
+    // 70 - 150
     return abs(point.g - point.r) < 30
         && abs(point.g - point.b) < 30
         && abs(point.r - point.b) < 30
-        && point.r > 70 && point.r < 100
-        && point.g > 70 && point.g < 100
-        && point.b > 70 && point.b < 100;
+        && point.r > 70 && point.r < 150
+        && point.g > 70 && point.g < 150
+        && point.b > 70 && point.b < 150;
 }
 
 void ZoneSplitter::Classificator(std::vector<Zone>& zones) {
