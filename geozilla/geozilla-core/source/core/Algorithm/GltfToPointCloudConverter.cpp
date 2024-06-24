@@ -25,6 +25,37 @@ GeoPointCloud GltfToPointCloudConverter::Convert(const GeoModel& model)
     return pointCloud;
 }
 
+void GltfToPointCloudConverter::Triangulate(const Triangle& triangle, const CesiumGltf::Image* image, PointCloud& pointCloud)
+{
+    const auto& p0 = triangle.positions[0];
+    const auto& p1 = triangle.positions[1];
+    const auto& p2 = triangle.positions[2];
+    const auto& t0 = triangle.texCoords[0];
+    const auto& t1 = triangle.texCoords[1];
+    const auto& t2 = triangle.texCoords[2];
+    //const auto area = glm::length(glm::cross(p1 - p0, p2 - p0)) / 2.0f;
+    //if (area < 0.01f)
+    //    return;
+
+    auto p01 = 0.5f * (p0 + p1);
+    auto t01 = 0.5f * (t0 + t1);
+    AddPoint(p01, t01, image, pointCloud);
+
+    auto p12 = 0.5f * (p1 + p2);
+    auto t12 = 0.5f * (t1 + t2);
+    AddPoint(p12, t12, image, pointCloud);
+
+    auto p20 = 0.5f * (p2 + p0);
+    auto t20 = 0.5f * (t2 + t0);
+    AddPoint(p20, t20, image, pointCloud);
+}
+
+void GltfToPointCloudConverter::AddPoint(const glm::vec3& point, const glm::vec2 texCoord, const CesiumGltf::Image* image, PointCloud& pointCloud)
+{
+    auto [r, g, b] = GetColor(image, texCoord.x, texCoord.y);
+    pointCloud.emplace_back(point.x, point.y, point.z, r, g, b);
+}
+
 PointCloud::Ptr GltfToPointCloudConverter::ExtractPoints(const GeoModel& model)
 {
     using CesiumGltf::Model;
@@ -57,15 +88,21 @@ PointCloud::Ptr GltfToPointCloudConverter::ExtractPoints(const GeoModel& model)
 
         assert(positionAccessor->type == CesiumGltf::AccessorSpec::Type::VEC3);
 
-        for (int64_t i = 0; i < positionAccessor->count; ++i)
+        auto triangleCount = positionAccessor->count / 3;
+        for (int64_t i = 0; i < triangleCount; ++i)
         {
-            auto position = glm::dvec4(positions[3 * i], positions[3 * i + 1], positions[3 * i + 2], 1.0);
-            position = transform * position;
+            auto triangle = Triangle{};
+            for (int j = 0; j < 3; ++j)
+            {
+                const float* p = &positions[3 * 3 * i + 3 * j];
+                triangle.positions[j] = glm::dvec3(transform * glm::dvec4(p[0], p[1], p[2], 1.0));
 
-            auto u = texCoords ? texCoords[2 * i + 0] : 0.0f;
-            auto v = texCoords ? texCoords[2 * i + 1] : 0.0f;
-            auto [r, g, b] = GetColor(image, u, v);
-            points->emplace_back(position.x, position.y, position.z, r, g, b);
+                const float* t = texCoords ? &texCoords[3 * 2 * i + 2 * j] : nullptr;
+                triangle.texCoords[j] = t ? glm::vec2(t[0], t[1]) : glm::vec2(0.0f, 0.0f);
+
+                AddPoint(triangle.positions[j], triangle.texCoords[j], image, *points);
+            }
+            Triangulate(triangle, image, *points);
         }
     };
 

@@ -3,6 +3,8 @@
 #include "GeoTypes.h"
 
 #include <array>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 namespace gz::core
 {
@@ -13,6 +15,14 @@ public:
     static GeoPointCloud Convert(const GeoModel& model);
 
 private:
+    struct Triangle
+    {
+        std::array<glm::vec3, 3> positions;
+        std::array<glm::vec2, 3> texCoords;
+    };
+
+    static void Triangulate(const Triangle& triangle, const CesiumGltf::Image* image, PointCloud& pointCloud);
+    static void AddPoint(const glm::vec3& point, const glm::vec2 texCoord, const CesiumGltf::Image* image, PointCloud& pointCloud);
     static PointCloud::Ptr ExtractPoints(const GeoModel& model);
     static glm::dvec3 ExtractCenter(const GeoModel& model);
     static CesiumGeospatial::Cartographic ComputeGeoCoord(const PointCloud::Ptr& points, const glm::dvec3& center);
