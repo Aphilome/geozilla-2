@@ -80,9 +80,9 @@ std::vector<PointCloud::Ptr> CreatePlanes(PointCloud::Ptr horizontCloud) {
     reg.setSearchMethod(tree);
 
     reg.setDistanceThreshold(10);
-    reg.setPointColorThreshold(7); // 6
-    reg.setRegionColorThreshold(6);// 5
-    reg.setMinClusterSize(30); // 600
+    reg.setPointColorThreshold(6); // 6
+    reg.setRegionColorThreshold(5);// 5
+    reg.setMinClusterSize(100); // 600
 
     std::vector <pcl::PointIndices> clusters;
     reg.extract(clusters);
