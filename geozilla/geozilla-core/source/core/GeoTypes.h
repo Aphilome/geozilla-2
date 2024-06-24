@@ -36,6 +36,7 @@ struct Zone
 {
     PointCloud::Ptr cloud;
     std::string type;
+    float maxHeight;
 };
 
 } // namespace gz::core

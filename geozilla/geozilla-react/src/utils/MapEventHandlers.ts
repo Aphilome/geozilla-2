@@ -35,15 +35,15 @@ const onCreateHandler = (e: LeafletEvent,
         onRemoveHandler(ie, geoJson.properties.featureId, geoJsonViewRef, setGeoJsonView);
     });
 
-    e.layer.bindTooltip("<div class='geoHightTooltip1'>" + "hi " + "</div>",
-        {
-            direction: 'right',
-            permanent: false,
-            sticky: true,
-            offset: [10, 0],
-            opacity: 0.75,
-            className: 'leaflet-tooltip-own'
-        });
+    // e.layer.bindTooltip("<div class='geoHightTooltip1'>" + "hi " + "</div>",
+    //     {
+    //         direction: 'right',
+    //         permanent: false,
+    //         sticky: true,
+    //         offset: [10, 0],
+    //         opacity: 0.75,
+    //         className: 'leaflet-tooltip-own'
+    //     });
 }
 
 const onEditHandler = (e: LeafletEvent,

@@ -121,11 +121,13 @@ std::vector<Zone> ZoneSplitter::SplitToZones(PointCloud::Ptr originalCloud, bool
 
     auto planes = CreateHorizontClouds(cuttedHorizontCloud);
     for (auto& i : planes)
-        zones.push_back({ i, "plane" });
+        zones.push_back({ i, _planeType });
 
     auto objects = CreateObstaclesObjects(cuttedObjectsCloud);
     for (auto& i : objects)
-        zones.push_back({ i, "object" });
+        zones.push_back({ i, _objectType });
+
+    Classificator(zones);
 
     for (auto& i : zones)
         VisualizeCloud(i.cloud, i.type, visualize);
@@ -134,7 +136,7 @@ std::vector<Zone> ZoneSplitter::SplitToZones(PointCloud::Ptr originalCloud, bool
 }
 
 std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontCutting(PointCloud::Ptr cloud) {
-    pcl::PointXYZRGB minPt, maxPt;
+    Point minPt, maxPt;
     pcl::getMinMax3D(*cloud, minPt, maxPt);
 
     size_t totalPointsCount = cloud->points.size();
@@ -142,14 +144,14 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontCutting(PointCloud::Ptr
     float percentOfHorizont = 0.0;
     float currentHorizontLevel = minPt.y;
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr horizontal_plane(new pcl::PointCloud<pcl::PointXYZRGB>);
+    PointCloud::Ptr horizontal_plane(new PointCloud);
     while (percentOfHorizont < 15.0)
     {
         currentHorizontLevel += deltaHorizont;
 
         horizontal_plane->clear();
 
-        pcl::PassThrough<pcl::PointXYZRGB> pass;
+        pcl::PassThrough<Point> pass;
         pass.setInputCloud(cloud);
         pass.setFilterFieldName("y");
         pass.setFilterLimits(minPt.y, currentHorizontLevel);
@@ -164,8 +166,8 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontCutting(PointCloud::Ptr
     }
 
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr withoutHorizontalCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    PointCloud::Ptr withoutHorizontalCloud(new PointCloud);
+    pcl::PassThrough<Point> pass;
     pass.setInputCloud(cloud);
     pass.setFilterFieldName("y");
     pass.setFilterLimits(minPt.y, currentHorizontLevel);
@@ -223,5 +225,91 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateObstaclesObjects(PointCloud::Pt
 
     return obstacles;
 }
+
+Point getAvgColor(PointCloud::Ptr cloud) {
+    Point point;
+
+    int r = 0, g = 0, b = 0, total = 0;
+    for (auto& p : cloud->points) {
+        r += p.r;
+        g += p.g;
+        b += p.b;
+        total++;
+    }
+
+    point.r = r / total;
+    point.g = g / total;
+    point.b = b / total;
+
+    return point;
+}
+
+bool isGreen(Point point) {
+    return point.g * 0.7 > point.r && point.g * 0.7 > point.b;
+}
+
+bool isGray(Point point) {
+    // 70 - 230
+    return abs(point.g - point.r) < 30
+        && abs(point.g - point.b) < 30
+        && abs(point.r - point.b) < 30
+        && point.r > 70 && point.r < 230
+        && point.g > 70 && point.g < 230
+        && point.b > 70 && point.b < 230;
+}
+
+void ZoneSplitter::Classificator(std::vector<Zone>& zones) {
+    for (auto& zone : zones) {
+        Point minPt, maxPt;
+        pcl::getMinMax3D(*zone.cloud, minPt, maxPt);
+        float widht = maxPt.x - minPt.x;
+        float length = maxPt.z - minPt.z;
+        float height = maxPt.y - minPt.y;
+        auto avgColor = getAvgColor(zone.cloud);
+        float density = zone.cloud->points.size() / widht * length;
+
+        zone.maxHeight = maxPt.y;
+
+        std::cout
+            << "- widht: " << widht
+            << "; length: " << length
+            << "; height: " << height
+            << "; r: " << (int)avgColor.r
+            << "; g: " << (int)avgColor.g
+            << "; b: " << (int)avgColor.b
+            << "; density: " << density
+            << std::endl;
+
+        // grass
+        // road
+        // sidewalk
+        if (zone.type == _planeType) {
+            if (isGreen(avgColor)) {
+                zone.type = "grass";
+            } else if (isGray(avgColor)) {
+                // - widht: 21.124; length: 20.093; height: 1.31099; r: 108; g: 105; b: 103; density: 182.629
+                if (widht > 10.0 && height > 10.0 && density > 150) {
+                    zone.type = "road";
+                }
+                else {
+                    zone.type = "sidewalk";
+                }
+            }
+            else if (zone.type == _planeType)
+                zone.type = "grass";
+        }
+        // building
+        // obstacles
+        else if (zone.type == _objectType) {
+            if (widht > 2.0 && length > 2.0 && height > 2.0 && isGray(avgColor)) {
+                zone.type = "building";
+            }
+            else {
+                zone.type = "obstacles";
+            }
+        }
+    }
+}
+
 
 } // namespace gz::core
