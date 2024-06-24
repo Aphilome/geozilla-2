@@ -80,9 +80,9 @@ std::vector<PointCloud::Ptr> CreatePlanes(PointCloud::Ptr horizontCloud) {
     reg.setSearchMethod(tree);
 
     reg.setDistanceThreshold(10);
-    reg.setPointColorThreshold(6); // 6
-    reg.setRegionColorThreshold(5);// 5
-    reg.setMinClusterSize(100); // 600
+    reg.setPointColorThreshold(7); // 6
+    reg.setRegionColorThreshold(6);// 5
+    reg.setMinClusterSize(30); // 600
 
     std::vector <pcl::PointIndices> clusters;
     reg.extract(clusters);
@@ -118,6 +118,9 @@ std::vector<Zone> ZoneSplitter::SplitToZones(PointCloud::Ptr originalCloud, bool
     auto cutting = CreateHorizontCutting(originalCloud);
     auto cuttedHorizontCloud = cutting[0];
     auto cuttedObjectsCloud = cutting[1];
+
+    //zones.push_back({ cuttedHorizontCloud, "cutted horizont"});
+    //zones.push_back({ cuttedObjectsCloud, "cutted objects"});
 
     auto planes = CreateHorizontClouds(cuttedHorizontCloud);
     for (auto& i : planes)
@@ -258,6 +261,26 @@ bool isGray(Point point) {
         && point.b > 70 && point.b < 230;
 }
 
+bool isLightGray(Point point) {
+    // 150 - 230
+    return abs(point.g - point.r) < 30
+        && abs(point.g - point.b) < 30
+        && abs(point.r - point.b) < 30
+        && point.r > 150 && point.r < 230
+        && point.g > 150 && point.g < 230
+        && point.b > 150 && point.b < 230;
+}
+
+bool isDarkGray(Point point) {
+    // 70 - 150
+    return abs(point.g - point.r) < 30
+        && abs(point.g - point.b) < 30
+        && abs(point.r - point.b) < 30
+        && point.r > 70 && point.r < 150
+        && point.g > 70 && point.g < 150
+        && point.b > 70 && point.b < 150;
+}
+
 void ZoneSplitter::Classificator(std::vector<Zone>& zones) {
     for (auto& zone : zones) {
         Point minPt, maxPt;
@@ -266,19 +289,9 @@ void ZoneSplitter::Classificator(std::vector<Zone>& zones) {
         float length = maxPt.z - minPt.z;
         float height = maxPt.y - minPt.y;
         auto avgColor = getAvgColor(zone.cloud);
-        float density = zone.cloud->points.size() / widht * length;
+        //float density = zone.cloud->points.size() / widht * length;
 
         zone.maxHeight = maxPt.y;
-
-        std::cout
-            << "- widht: " << widht
-            << "; length: " << length
-            << "; height: " << height
-            << "; r: " << (int)avgColor.r
-            << "; g: " << (int)avgColor.g
-            << "; b: " << (int)avgColor.b
-            << "; density: " << density
-            << std::endl;
 
         // grass
         // road
@@ -288,14 +301,14 @@ void ZoneSplitter::Classificator(std::vector<Zone>& zones) {
                 zone.type = "grass";
             } else if (isGray(avgColor)) {
                 // - widht: 21.124; length: 20.093; height: 1.31099; r: 108; g: 105; b: 103; density: 182.629
-                if (widht > 10.0 && height > 10.0 && density > 150) {
+                if (widht > 5.0 && length > 5.0 && isDarkGray(avgColor)) {
                     zone.type = "road";
                 }
                 else {
                     zone.type = "sidewalk";
                 }
             }
-            else if (zone.type == _planeType)
+            if (zone.type == _planeType)
                 zone.type = "grass";
         }
         // building
@@ -308,6 +321,16 @@ void ZoneSplitter::Classificator(std::vector<Zone>& zones) {
                 zone.type = "obstacles";
             }
         }
+
+        std::cout
+            << "- widht: " << widht
+            << "; length: " << length
+            << "; height: " << height
+            << "; r: " << (int)avgColor.r
+            << "; g: " << (int)avgColor.g
+            << "; b: " << (int)avgColor.b
+            << "; zone.type: " << zone.type
+            << std::endl;
     }
 }
 
