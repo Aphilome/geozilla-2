@@ -1,4 +1,5 @@
 #include "GeozillaCore.h"
+#include "ZoneSplitter/ZoneSplitter.h"
 
 #include <Logger/ConsoleLogger.h>
 #include <Loader/GeoModelLoader.h>
@@ -32,20 +33,19 @@ GeoPointCloud ConvertToPointCloud(const std::vector<GeoModel>& models)
         return {};
 
     assert((models.size() == 1) && "Multi models is not supported");
-    return GltfToPointCloudConverter::Convert(models.front(), true);
+    return GltfToPointCloudConverter::Convert(models.front());
 }
 
-std::vector<GeoPointCloud> GenerateConcaveHulls(const std::vector<GeoPointCloud>& pointClouds)
+std::vector<Zone> GenerateConcaveHulls(std::vector<Zone> zones)
 {
-    std::vector<GeoPointCloud> concaveHulls(pointClouds.size());
-    std::transform(std::begin(pointClouds), std::end(pointClouds), std::begin(concaveHulls), [](const GeoPointCloud& pc)
+    for (auto&& zone : zones)
     {
-        return ConcaveHullGenerator::Generate(pc);
-    });
-    return concaveHulls;
+        zone.cloud = ConcaveHullGenerator::Generate(zone.cloud);
+    }
+    return zones;
 }
 
-GeoJson GenerateGeoJson(const std::vector<GeoPointCloud>& pointClouds, const std::filesystem::path& path)
+GeoJson GenerateGeoJson(const std::vector<Zone>& zones, const GeoCoord& geoCoord, const std::filesystem::path& path)
 {
     auto fileName = path.filename().string();
     auto dotPos = fileName.find_last_of('.');
@@ -53,18 +53,19 @@ GeoJson GenerateGeoJson(const std::vector<GeoPointCloud>& pointClouds, const std
     {
         fileName = fileName.substr(0, dotPos);
     }
-    return GeoJsonGenerator::Generate(pointClouds, fileName);
+    return GeoJsonGenerator::Generate(zones, geoCoord, fileName);
 }
 
 } // namespace
 
-std::string GenerateGeoJson(const std::filesystem::path& path)
+std::string GenerateGeoJson(const std::filesystem::path& path, bool visualize)
 {
     constexpr auto indent = 4;
     auto models = LoadGeoModels(path);
     auto pointCloud = ConvertToPointCloud(models);
-    auto hullClouds = GenerateConcaveHulls({ pointCloud });
-    auto geoJson = GenerateGeoJson(hullClouds, path);
+    auto zones = ZoneSplitter{}.SplitToZones(pointCloud.points, visualize);
+    auto zoneHulls = GenerateConcaveHulls(std::move(zones));
+    auto geoJson = GenerateGeoJson(zoneHulls, pointCloud.geoCoord, path);
     return geoJson.dump(indent);
 }
 
@@ -73,7 +74,7 @@ const char* GenerateGeoJsonBuffer(const char* path)
     if (!path)
         return nullptr;
 
-    auto geoJson = GenerateGeoJson(path);
+    auto geoJson = GenerateGeoJson(path, false);
     const auto size = geoJson.size();
     auto* buffer = new char[size + 1];
     buffer[size] = '\0';

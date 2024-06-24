@@ -4,14 +4,14 @@ import React from "react";
 import FigureLayers from "../types/FigureLayers";
 import {FeatureCollection} from "geojson";
 import "./MapEventHandlers.css";
+import FeatureCollectionExt from "../types/FeatureCollectionExt";
 
 const onCreateHandler = (e: LeafletEvent,
                          activeLayerRef: React.MutableRefObject<string>,
                          layersRef: React.MutableRefObject<FigureLayers>,
                          nextFeatureIdRef: React.MutableRefObject<number>,
-                         geoJsonViewRef: React.MutableRefObject<FeatureCollection>,
-                         setGeoJsonView: (geoJsonView: FeatureCollection) => void) => {
-    console.log('Created shape:', e);
+                         geoJsonViewRef: React.MutableRefObject<FeatureCollectionExt>,
+                         setGeoJsonView: (geoJsonView: FeatureCollectionExt) => void) => {
     const layer = e.layer;
     if (!('toGeoJSON' in layer && 'setStyle' in layer)) return;
 
@@ -25,7 +25,7 @@ const onCreateHandler = (e: LeafletEvent,
     geoJson.properties.zoneType = activeLayerRef.current;
     geoJson.properties.featureId = nextFeatureIdRef.current;
     nextFeatureIdRef.current++;
-    setGeoJsonView({ type: geoJsonViewRef.current.type, features: [...geoJsonViewRef.current.features, geoJson]})
+    setGeoJsonView({ type: geoJsonViewRef.current.type, name: geoJsonViewRef.current.name, features: [...geoJsonViewRef.current.features, geoJson]})
 
     figure.on('pm:edit', (ie: LeafletEvent) => {
         onEditHandler(ie, geoJson.properties.featureId, geoJsonViewRef, setGeoJsonView);
@@ -35,22 +35,21 @@ const onCreateHandler = (e: LeafletEvent,
         onRemoveHandler(ie, geoJson.properties.featureId, geoJsonViewRef, setGeoJsonView);
     });
 
-    e.layer.bindTooltip("<div class='geoHightTooltip1'>" + "hi " + "</div>",
-        {
-            direction: 'right',
-            permanent: false,
-            sticky: true,
-            offset: [10, 0],
-            opacity: 0.75,
-            className: 'leaflet-tooltip-own'
-        });
+    // e.layer.bindTooltip("<div class='geoHightTooltip1'>" + "hi " + "</div>",
+    //     {
+    //         direction: 'right',
+    //         permanent: false,
+    //         sticky: true,
+    //         offset: [10, 0],
+    //         opacity: 0.75,
+    //         className: 'leaflet-tooltip-own'
+    //     });
 }
 
 const onEditHandler = (e: LeafletEvent,
                        featureId: number,
-                       geoJsonViewRef: React.MutableRefObject<FeatureCollection>,
-                       setGeoJsonView: (geoJsonView: FeatureCollection) => void) => {
-    console.log('Edited shape:', e);
+                       geoJsonViewRef: React.MutableRefObject<FeatureCollectionExt>,
+                       setGeoJsonView: (geoJsonView: FeatureCollectionExt) => void) => {
     const layer = e.layer;
     if (!('toGeoJSON' in layer)) return;
 
@@ -63,10 +62,8 @@ const onEditHandler = (e: LeafletEvent,
 
 const onRemoveHandler = (e: LeafletEvent,
                          featureId: number,
-                         geoJsonViewRef: React.MutableRefObject<FeatureCollection>,
-                         setGeoJsonView: (geoJsonView: FeatureCollection) => void) => {
-    console.log('Removed shape:', e);
-
+                         geoJsonViewRef: React.MutableRefObject<FeatureCollectionExt>,
+                         setGeoJsonView: (geoJsonView: FeatureCollectionExt) => void) => {
     const otherFeatures = geoJsonViewRef.current.features.filter(f => f.properties!.featureId !== featureId);
 
     setGeoJsonView({...geoJsonViewRef.current, features: otherFeatures});

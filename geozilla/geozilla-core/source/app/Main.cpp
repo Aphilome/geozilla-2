@@ -22,18 +22,16 @@ void CreateArgumentsParser(argparse::ArgumentParser& program)
         .help("specify the GeoJSON output path");
 
     program
-        .add_argument("--latitude")
-        .help("geographic latitude of the input model");
-
-    program
-        .add_argument("--longitude")
-        .help("geographic longitude of the input model");
+        .add_argument("-visualize", "--visualize")
+        .flag()
+        .help("Visualize point clouds");
 }
 
 struct Arguments
 {
     std::string inputPath;
     std::optional<std::string> outputPath;
+    bool visualize;
 };
 
 Arguments ParseArguments(argparse::ArgumentParser& program, int argc, char* argv[])
@@ -52,6 +50,8 @@ Arguments ParseArguments(argparse::ArgumentParser& program, int argc, char* argv
     Arguments arguments = {};
     arguments.inputPath = program.get("-i");
     arguments.outputPath = program.present("-o");
+    arguments.visualize = program.is_used("-visualize");
+
     return arguments;
 }
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
     CreateArgumentsParser(program);
 
     auto arguments = ParseArguments(program, argc, argv);
-    auto geoJson = GenerateGeoJson(arguments.inputPath);
+    auto geoJson = GenerateGeoJson(arguments.inputPath, arguments.visualize);
     if (arguments.outputPath)
     {
         std::ofstream output(*arguments.outputPath);

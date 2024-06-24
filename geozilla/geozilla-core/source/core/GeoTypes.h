@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CesiumGltf/Model.h>
+#include <CesiumGeospatial/Cartographic.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -15,14 +16,27 @@ namespace gz::core
 
 using GeoModel = CesiumGltf::Model;
 using GeoJson = nlohmann::ordered_json;
-using Point = pcl::PointXYZ;
+using Point = pcl::PointXYZRGB;
 using ConcaveHull = pcl::ConcaveHull<Point>;
 using PointCloud = pcl::PointCloud<Point>;
+
+struct GeoCoord
+{
+    glm::dvec3 center = {};
+    CesiumGeospatial::Cartographic cartographic = { 0.0, 0.0, 0.0 };
+};
 
 struct GeoPointCloud
 {
     PointCloud::Ptr points;
-    glm::dvec3 center;
+    GeoCoord geoCoord;
+};
+
+struct Zone
+{
+    PointCloud::Ptr cloud;
+    std::string type;
+    float maxHeight;
 };
 
 } // namespace gz::core

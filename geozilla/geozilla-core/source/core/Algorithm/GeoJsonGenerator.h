@@ -11,11 +11,11 @@ namespace gz::core
 class GeoJsonGenerator
 {
 public:
-    static GeoJson Generate(const std::vector<GeoPointCloud>& pointClouds, const std::string& name);
+    static GeoJson Generate(const std::vector<Zone>& zones, const GeoCoord& geoCoord, const std::string& name);
 
 private:
-    static GeoJson GenerateFeatures(const std::vector<GeoPointCloud>& pointClouds);
-    static GeoJson GenerateCoordinates(const GeoPointCloud& pointCloud);
+    static GeoJson GenerateFeatures(const std::vector<Zone>& zones, const GeoCoord& geoCoord);
+    static GeoJson GenerateCoordinates(const PointCloud::Ptr& pointCloud, const GeoCoord& geoCoord);
     static double ToDegrees(double radians);
 };
 
