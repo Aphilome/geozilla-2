@@ -7,19 +7,19 @@
 namespace gz::core
 {
 
-GeoPointCloud ConcaveHullGenerator::Generate(const GeoPointCloud& pointCloud)
+PointCloud::Ptr ConcaveHullGenerator::Generate(const PointCloud::Ptr& pointCloud)
 {
     Point minPoint;
     Point maxPoint;
-    pcl::getMinMax3D(*pointCloud.points, minPoint, maxPoint);
+    pcl::getMinMax3D(*pointCloud, minPoint, maxPoint);
 
     auto coefficients = std::make_shared<pcl::ModelCoefficients>();
-    coefficients->values = { 0.0f, 1.0f, 0.0f, -maxPoint.y };
+    coefficients->values = { 0.0f, 1.0f, 0.0f, 0.0f };
 
     auto cloudProjected = std::make_shared<PointCloud>();
     auto projection = pcl::ProjectInliers<Point>();
     projection.setModelType(pcl::SACMODEL_PLANE);
-    projection.setInputCloud(pointCloud.points);
+    projection.setInputCloud(pointCloud);
     projection.setModelCoefficients(coefficients);
     projection.filter(*cloudProjected);
 
@@ -28,12 +28,7 @@ GeoPointCloud ConcaveHullGenerator::Generate(const GeoPointCloud& pointCloud)
     hull.setInputCloud(cloudProjected);
     hull.setAlpha(10.0);
     hull.reconstruct(*cloudHull);
-
-    return GeoPointCloud{
-        std::move(cloudHull),
-        pointCloud.center,
-        pointCloud.geoCoord
-    };
+    return cloudHull;
 }
 
 } // namespace gz::core

@@ -10,47 +10,46 @@
 namespace gz::core
 {
 
-GeoJson GeoJsonGenerator::Generate(const std::vector<GeoPointCloud>& pointClouds, const std::string& name)
+GeoJson GeoJsonGenerator::Generate(const std::vector<Zone>& zones, const GeoCoord& geoCoord, const std::string& name)
 {
     return {
         {"type", "FeatureCollection"},
         {"name", name},
-        {"features", GenerateFeatures(pointClouds)},
+        {"features", GenerateFeatures(zones, geoCoord)},
     };
 }
 
-GeoJson GeoJsonGenerator::GenerateFeatures(const std::vector<GeoPointCloud>& pointClouds)
+GeoJson GeoJsonGenerator::GenerateFeatures(const std::vector<Zone>& zones, const GeoCoord& geoCoord)
 {
     GeoJson features;
-    for (auto&& pointCloud : pointClouds)
+    for (auto&& zone : zones)
     {
         features.push_back({
             {"type", "Feature"},
             {"properties", {
-                {"zoneType", "unknown"},
+                {"zoneType", zone.type},
             }},
             {"geometry", {
                 {"type", "Polygon"},
-                {"coordinates", GenerateCoordinates(pointCloud)},
+                {"coordinates", GenerateCoordinates(zone.cloud, geoCoord)},
             }},
         });
     }
     return features;
 }
 
-GeoJson GeoJsonGenerator::GenerateCoordinates(const GeoPointCloud& pointCloud)
+GeoJson GeoJsonGenerator::GenerateCoordinates(const PointCloud::Ptr& pointCloud, const GeoCoord& geoCoord)
 {
     using namespace Eigen;
 
-    auto&& pc = pointCloud.points;
-    if (!pc)
+    if (!pointCloud)
         return {};
 
     auto coordinates = GeoJson{};
-    auto [cx, cy, cz] = pointCloud.center;
-    auto [longitude, latitude, _] = pointCloud.geoCoord;
+    auto [cx, cy, cz] = geoCoord.center;
+    auto [longitude, latitude, _] = geoCoord.cartographic;
 
-    for (auto&& point : pc->points)
+    for (auto&& point : *pointCloud)
     {
         auto p = Vector4d(point.x, point.y, point.z, 1.0);
         auto transform = Affine3d::Identity();

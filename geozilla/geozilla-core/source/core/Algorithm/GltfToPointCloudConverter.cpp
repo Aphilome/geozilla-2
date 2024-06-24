@@ -19,9 +19,9 @@ GeoPointCloud GltfToPointCloudConverter::Convert(const GeoModel& model)
 {
     auto points = ExtractPoints(model);
     auto pointCloud = GeoPointCloud{};
-    pointCloud.center = ExtractCenter(model);
-    pointCloud.geoCoord = ComputeGeoCoord(points, pointCloud.center);
-    pointCloud.points = Normalize(points, pointCloud.geoCoord);
+    pointCloud.geoCoord.center = ExtractCenter(model);
+    pointCloud.geoCoord.cartographic = ComputeGeoCoord(points, pointCloud.geoCoord.center);
+    pointCloud.points = Normalize(points, pointCloud.geoCoord.cartographic);
     return pointCloud;
 }
 

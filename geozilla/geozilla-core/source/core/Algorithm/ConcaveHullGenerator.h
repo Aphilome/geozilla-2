@@ -8,7 +8,7 @@ namespace gz::core
 class ConcaveHullGenerator
 {
 public:
-    static GeoPointCloud Generate(const GeoPointCloud& pointCloud);
+    static PointCloud::Ptr Generate(const PointCloud::Ptr& pointCloud);
 };
 
 } // namespace gz::core

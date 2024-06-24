@@ -110,9 +110,8 @@ std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontClouds(PointCloud::Ptr 
     return planes;
 }
 
-SplitClouds ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud, bool visualize) {
-    auto planeClouds = std::vector<PointCloud::Ptr>();
-    auto objectClouds = std::vector<PointCloud::Ptr>();
+std::vector<Zone> ZoneSplitter::SplitToZones(PointCloud::Ptr originalCloud, bool visualize) {
+    std::vector<Zone> zones;
 
     VisualizeCloud(originalCloud, "originalCloud", visualize);
 
@@ -122,18 +121,16 @@ SplitClouds ZoneSplitter::SplitToClouds(PointCloud::Ptr originalCloud, bool visu
 
     auto planes = CreateHorizontClouds(cuttedHorizontCloud);
     for (auto& i : planes)
-        planeClouds.push_back(i);
+        zones.push_back({ i, "plane" });
 
     auto objects = CreateObstaclesObjects(cuttedObjectsCloud);
     for (auto& i : objects)
-        objectClouds.push_back(i);
+        zones.push_back({ i, "object" });
 
-    for (auto& i : planeClouds)
-        VisualizeCloud(i, "plane", visualize);
-    for (auto& i : objectClouds)
-        VisualizeCloud(i, "object", visualize);
+    for (auto& i : zones)
+        VisualizeCloud(i.cloud, i.type, visualize);
 
-    return { planeClouds, objectClouds };
+    return zones;
 }
 
 std::vector<PointCloud::Ptr> ZoneSplitter::CreateHorizontCutting(PointCloud::Ptr cloud) {

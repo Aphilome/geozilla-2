@@ -20,11 +20,22 @@ using Point = pcl::PointXYZRGB;
 using ConcaveHull = pcl::ConcaveHull<Point>;
 using PointCloud = pcl::PointCloud<Point>;
 
+struct GeoCoord
+{
+    glm::dvec3 center = {};
+    CesiumGeospatial::Cartographic cartographic = { 0.0, 0.0, 0.0 };
+};
+
 struct GeoPointCloud
 {
     PointCloud::Ptr points;
-    glm::dvec3 center;
-    CesiumGeospatial::Cartographic geoCoord = { 0.0, 0.0, 0.0 };
+    GeoCoord geoCoord;
+};
+
+struct Zone
+{
+    PointCloud::Ptr cloud;
+    std::string type;
 };
 
 } // namespace gz::core

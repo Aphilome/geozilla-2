@@ -18,19 +18,10 @@ namespace gz::core
 // obstacles
 // default (in front, all other)
 
-//struct Zone {
-//    std::string type;
-//    PointCloud::Ptr cloud;
-//};
-
-struct SplitClouds {
-    std::vector<PointCloud::Ptr> planeClouds;
-    std::vector<PointCloud::Ptr> objectClouds;
-};
-
 class ZoneSplitter {
 public:
-    SplitClouds SplitToClouds(PointCloud::Ptr originalCloud, bool visualize);
+    std::vector<Zone> SplitToZones(PointCloud::Ptr originalCloud, bool visualize);
+
 private:
     void VisualizeCloud(PointCloud::Ptr cloud, std::string title, bool visualize);
     std::vector<PointCloud::Ptr> CreateHorizontClouds(PointCloud::Ptr horizontCloud);
