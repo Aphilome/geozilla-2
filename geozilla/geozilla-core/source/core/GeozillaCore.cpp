@@ -5,7 +5,7 @@
 #include <Loader/GeoModelLoader.h>
 
 #include "Algorithm/GltfToPointCloudConverter.h"
-#include <Algorithm/ConcaveHullGenerator.h>
+#include <Algorithm/PolygonGenerator.h>
 #include <Algorithm/GeoJsonGenerator.h>
 
 #include <algorithm>
@@ -40,7 +40,7 @@ std::vector<Zone> GenerateConcaveHulls(std::vector<Zone> zones)
 {
     for (auto&& zone : zones)
     {
-        zone.cloud = ConcaveHullGenerator::Generate(zone.cloud);
+        zone.cloud = PolygonGenerator::Generate(zone.cloud);
     }
     return zones;
 }

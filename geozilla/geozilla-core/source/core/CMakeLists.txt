@@ -25,10 +25,10 @@ set(SOURCE_LIST
     # Algorithm
     Algorithm/GltfToPointCloudConverter.h
     Algorithm/GltfToPointCloudConverter.cpp
-    Algorithm/ConcaveHullGenerator.h
-    Algorithm/ConcaveHullGenerator.cpp
     Algorithm/GeoJsonGenerator.h
     Algorithm/GeoJsonGenerator.cpp
+    Algorithm/PolygonGenerator.h
+    Algorithm/PolygonGenerator.cpp
 
     # ZoneSplitter
     ZoneSplitter/ZoneSplitter.h
