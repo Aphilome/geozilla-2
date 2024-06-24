@@ -28,6 +28,7 @@ GeoJson GeoJsonGenerator::GenerateFeatures(const std::vector<Zone>& zones, const
             {"type", "Feature"},
             {"properties", {
                 {"zoneType", zone.type},
+                {"maxHeight", zone.maxHeight}
             }},
             {"geometry", {
                 {"type", "Polygon"},

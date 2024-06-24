@@ -10,14 +10,6 @@
 
 namespace gz::core
 {
-
-// grass
-// road
-// sidewalk
-// building
-// obstacles
-// default (in front, all other)
-
 class ZoneSplitter {
 public:
     std::vector<Zone> SplitToZones(PointCloud::Ptr originalCloud, bool visualize);
@@ -27,6 +19,10 @@ private:
     std::vector<PointCloud::Ptr> CreateHorizontClouds(PointCloud::Ptr horizontCloud);
     std::vector<PointCloud::Ptr> CreateHorizontCutting(PointCloud::Ptr cloud);
     std::vector<PointCloud::Ptr> CreateObstaclesObjects(PointCloud::Ptr cloud);
+    void Classificator(std::vector<Zone>& zones);
+
+    std::string _planeType = "plane";
+    std::string _objectType = "object";
 };
 
 } // namespace gz::core

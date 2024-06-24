@@ -30,7 +30,7 @@ const DataSender: React.FC<DataSenderProps> = ({setGeoJson}) => {
             })
             .catch(error => {
                 console.error(error);
-                setError('Произошла ошибка при отправке координат');
+                setError('Произошла ошибка при отправке файла');
             });
     };
 
